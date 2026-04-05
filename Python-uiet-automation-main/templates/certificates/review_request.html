@@ -1,0 +1,58 @@
+{% extends 'accounts/admin_dashboard.html' %}
+{% block content %}
+<div class="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-4 p-4">
+    
+    <div class="w-full md:w-2/3 h-full bg-gray-800 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+        <div class="bg-gray-900 text-white px-4 py-2 flex justify-between items-center border-b border-gray-700">
+            <span class="font-semibold">📑 Document Preview</span>
+            {% if req.verification_document %}
+                <a href="{{ req.verification_document.url }}" target="_blank" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">Open in New Tab ↗</a>
+            {% endif %}
+        </div>
+        
+        <div class="flex-1 bg-gray-200 relative">
+            {% if req.verification_document %}
+                <iframe src="{{ req.verification_document.url }}" class="w-full h-full absolute inset-0 border-none"></iframe>
+            {% else %}
+                <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                    <p class="font-bold">No Document Uploaded</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="w-full md:w-1/3 h-full bg-white rounded-xl shadow-xl flex flex-col p-6 overflow-y-auto">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Verification Details</h2>
+        
+        <p class="text-sm text-gray-600">Student: <span class="font-bold text-gray-900">{{ req.student.full_name }}</span></p>
+        <p class="text-sm text-gray-600 mb-4">Certificate: <span class="font-bold text-gray-900">{{ req.template.name }}</span></p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-1">Verify Data (e.g. CPI)</label>
+                <input type="text" name="dynamic_cpi" 
+                       value="{{ req.request_data.cpi|default:'' }}" 
+                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                       placeholder="Enter correct value from document...">
+                <p class="text-xs text-gray-500 mt-1">Agar document mein value alag hai, to yahan sahi karein.</p>
+            </div>
+
+            <button type="submit" name="action" value="verify" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow mb-4">
+                ✅ Data Verified - Forward
+            </button>
+
+            <details class="group mt-4">
+                <summary class="text-red-600 cursor-pointer text-sm font-medium">Reject Request?</summary>
+                <div class="mt-2">
+                    <textarea name="rejection_reason" placeholder="Reason..." class="w-full border p-2 rounded text-sm mb-2"></textarea>
+                    <button type="submit" name="action" value="reject" class="w-full bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm">
+                        ❌ Reject
+                    </button>
+                </div>
+            </details>
+        </form>
+    </div>
+</div>
+{% endblock %}

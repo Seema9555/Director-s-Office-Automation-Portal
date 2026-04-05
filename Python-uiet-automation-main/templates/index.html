@@ -1,0 +1,768 @@
+{% comment %} {% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director's Portal | UIET CSJMU</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+        
+        /* Smooth Fade In Animation on Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero Animation */
+        @keyframes subtle-zoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        .hero-img {
+            animation: subtle-zoom 20s infinite alternate linear;
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(to right, #2563eb, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800">
+
+    <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div class="container mx-auto flex justify-between items-center p-4 lg:px-8">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-blue-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <img src="{% static 'pictures/logo.png' %}" alt="UIET Logo" class="h-10 w-10 relative z-10">
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-none">Director's Portal</h1>
+                    <p class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mt-0.5">UIET, CSJMU Kanpur</p>
+                </div>
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="#services" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Services</a>
+                <a href="#about" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">About</a>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <a href="{% url 'student_login' %}" class="text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors">Student Login</a>
+                <a href="{% url 'admin_login' %}" class="px-5 py-2.5 rounded-full text-sm font-semibold bg-slate-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
+                    Admin Access
+                </a>
+            </nav>
+
+            <button id="mobile-menu-btn" class="md:hidden text-slate-800 p-2">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+            <div class="flex flex-col p-4 space-y-3">
+                <a href="{% url 'student_login' %}" class="block px-4 py-3 rounded-lg bg-blue-50 text-blue-700 font-semibold">Student Login</a>
+                <a href="{% url 'admin_login' %}" class="block px-4 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold">Admin Login</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/40 z-10"></div>
+            <img src="{% static 'pictures/UIET.jpg' %}" alt="Campus" class="hero-img w-full h-full object-cover">
+        </div>
+
+        <div class="container mx-auto px-4 relative z-20 text-center lg:text-left">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/2 space-y-6">
+                    <div class="inline-flex items-center px-3 py-1 rounded-full border border-blue-400/30 bg-blue-500/10 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-2 reveal active">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 mr-2 animate-pulse"></span> Official Portal
+                    </div>
+                    
+                    <h1 class="text-4xl lg:text-6xl font-extrabold text-white leading-tight reveal active" style="transition-delay: 100ms;">
+                        Director's Office <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400" id="typed-text"></span>
+                    </h1>
+                    
+                    <p class="text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed reveal active" style="transition-delay: 200ms;">
+                        Empowering students and faculty with a seamless, paperless administrative experience. Certificates, verifications, and approvals—now just a click away.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4 reveal active" style="transition-delay: 300ms;">
+                        <a href="{% url 'student_login' %}" class="px-8 py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 group">
+                            Student Login 
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#services" class="px-8 py-4 rounded-xl font-bold text-slate-300 border border-slate-600 hover:bg-white/10 hover:text-white transition-all">
+                            Explore Services
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:w-1/2 hidden lg:block relative reveal active" style="transition-delay: 400ms;">
+                    <div class="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-2xl shadow-2xl max-w-md mx-auto transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                        <div class="flex items-center gap-4 mb-6 border-b border-white/10 pb-4">
+                            <div class="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                                <i class="fa-solid fa-check-circle text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Instant Verification</h3>
+                                <p class="text-slate-300 text-xs">Verify documents in real-time</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="h-2 bg-white/20 rounded-full w-3/4"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-full"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-5/6"></div>
+                        </div>
+                        <div class="mt-6 flex justify-between items-center">
+                            <span class="text-white font-mono text-sm">Status: <span class="text-green-400">Active</span></span>
+                            <div class="px-3 py-1 bg-blue-600 rounded text-xs text-white font-bold">New</div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-50"></div>
+                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500 rounded-full blur-[80px] opacity-40"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-20">
+            <svg class="relative block w-full h-[60px] md:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="fill-gray-50"></path>
+            </svg>
+        </div>
+    </section>
+
+    <section id="services" class="py-24 bg-gray-50 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Core Services</h2>
+                <div class="h-1.5 w-20 bg-blue-600 mx-auto rounded-full"></div>
+                <p class="mt-4 text-slate-600">Select your role to access the specific modules designed for your needs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                
+                <a href="{% url 'student_login' %}" class="group reveal relative bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
+                    <div class="relative z-10 h-14 w-14 rounded-xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-blue-200 mb-6 group-hover:rotate-6 transition-transform">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h3 class="relative z-10 text-xl font-bold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">Student Login</h3>
+                    <p class="relative z-10 text-slate-500 text-sm leading-relaxed">
+                        Access your academic dashboard, request certificates (Bonafide, Character, Migration), and track status.
+                    </p>
+                    <div class="relative z-10 mt-6 flex items-center text-blue-600 font-semibold text-sm">
+                        Login Now <i class="fa-solid fa-chevron-right ml-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <a href="{% url 'verify_certificate' %}" class="group reveal relative bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden" style="transition-delay: 100ms;">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
+                    <div class="relative z-10 h-14 w-14 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-200 mb-6 group-hover:rotate-6 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="relative z-10 text-xl font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors">Verify Certificate</h3>
+                    <p class="relative z-10 text-slate-500 text-sm leading-relaxed">
+                        Public verification tool for employers and organizations to check the authenticity of issued documents.
+                    </p>
+                    <div class="relative z-10 mt-6 flex items-center text-emerald-600 font-semibold text-sm">
+                        Check Validity <i class="fa-solid fa-chevron-right ml-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <a href="{% url 'admin_login' %}" class="group reveal relative bg-white rounded-2xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden" style="transition-delay: 200ms;">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-slate-100 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-150 duration-500"></div>
+                    <div class="relative z-10 h-14 w-14 rounded-xl bg-slate-800 text-white flex items-center justify-center text-2xl shadow-lg shadow-slate-300 mb-6 group-hover:rotate-6 transition-transform">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h3 class="relative z-10 text-xl font-bold text-slate-800 mb-2 group-hover:text-slate-600 transition-colors">Administrative Access</h3>
+                    <p class="relative z-10 text-slate-500 text-sm leading-relaxed">
+                        Restricted area for the Director and staff to manage requests, approve certificates, and maintain records.
+                    </p>
+                    <div class="relative z-10 mt-6 flex items-center text-slate-700 font-semibold text-sm">
+                        Admin Portal <i class="fa-solid fa-chevron-right ml-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-slate-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#4b5563 1px, transparent 1px); background-size: 30px 30px;"></div>
+        
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-slate-700/50">
+                <div class="reveal">
+                    <p class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-600">24/7</p>
+                    <p class="mt-2 text-slate-400 text-sm uppercase tracking-wide">Access</p>
+                </div>
+                <div class="reveal" style="transition-delay: 100ms;">
+                    <p class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-600">100%</p>
+                    <p class="mt-2 text-slate-400 text-sm uppercase tracking-wide">Digital</p>
+                </div>
+                <div class="reveal" style="transition-delay: 200ms;">
+                    <p class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-600">Secure</p>
+                    <p class="mt-2 text-slate-400 text-sm uppercase tracking-wide">Verification</p>
+                </div>
+                <div class="reveal" style="transition-delay: 300ms;">
+                    <p class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-600">Fast</p>
+                    <p class="mt-2 text-slate-400 text-sm uppercase tracking-wide">Processing</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 pt-16 pb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
+                <div class="md:col-span-5 space-y-4">
+                    <div class="flex items-center gap-3">
+                         <img src="{% static 'pictures/logo.png' %}" alt="Logo" class="h-10 w-10 brightness-0 invert opacity-80">
+                         <h4 class="text-xl font-bold text-white">Director's Office Portal</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+                        University Institute of Engineering & Technology, CSJMU. <br>
+                        Dedicated to academic excellence and streamlined student services through digital innovation.
+                    </p>
+                </div>
+                
+                <div class="md:col-span-3">
+                    <h5 class="text-white font-semibold mb-4">Quick Navigation</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Home</a></li>
+                        <li><a href="https://csjmu.ac.in/" target="_blank" class="hover:text-blue-400 transition-colors">University Website</a></li>
+                        <li><a href="{% url 'student_login' %}" class="hover:text-blue-400 transition-colors">Student Dashboard</a></li>
+                        <li><a href="{% url 'verify_certificate' %}" class="hover:text-blue-400 transition-colors">Verify Documents</a></li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-4">
+                    <h5 class="text-white font-semibold mb-4">Get in Touch</h5>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-map-pin mt-1 text-blue-500"></i>
+                            <span>UIET Campus, CSJMU, Kalyanpur, <br>Kanpur, Uttar Pradesh - 208024</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-blue-500"></i>
+                            <a href="tel:05122246609" class="hover:text-white">0512-2246609</a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope text-blue-500"></i>
+                            <a href="mailto:director@uiet.csjmu.ac.in" class="hover:text-white">director@uiet.csjmu.ac.in</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+                <p>&copy; {% now "Y" %} UIET, CSJMU. All Rights Reserved.</p>
+                <div class="mt-2 md:mt-0">
+                    Designed & Developed by <span class="text-slate-400">Satyam Pathak</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Typed JS Setup
+        var typed = new Typed('#typed-text', {
+            strings: ['Automation Portal', 'Student Services', 'Digital Platform'],
+            typeSpeed: 50,
+            backSpeed: 30,
+            loop: true,
+            backDelay: 3000,
+            showCursor: false
+        });
+
+        // 2. Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // 3. Navbar Sticky Effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-md');
+            } else {
+                navbar.classList.remove('shadow-md');
+            }
+        });
+
+        // 4. Scroll Reveal Animation
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal();
+    </script>
+</body>
+</html> {% endcomment %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Director's Portal | UIET CSJMU</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; }
+        
+        /* Smooth Fade In Animation on Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero Animation */
+        @keyframes subtle-zoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        .hero-img {
+            animation: subtle-zoom 20s infinite alternate linear;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800">
+
+    <div id="preloader" class="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="relative">
+            <div class="h-24 w-24 rounded-full border-t-4 border-b-4 border-blue-600 animate-spin"></div>
+            <img src="{% static 'pictures/logo.png' %}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12" alt="Logo">
+        </div>
+        <h3 class="mt-4 text-slate-800 font-bold tracking-widest animate-pulse">UIET CSJMU</h3>
+    </div>
+
+    <div class="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-emerald-400 z-[101]" id="progressBar" style="width: 0%"></div>
+
+    <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div class="container mx-auto flex justify-between items-center p-4 lg:px-8">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-blue-500 rounded-full blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <img src="{% static 'pictures/logo.png' %}" alt="UIET Logo" class="h-10 w-10 relative z-10">
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-none">Director's Portal</h1>
+                    <p class="text-[10px] font-semibold text-blue-600 uppercase tracking-wider mt-0.5">UIET, CSJMU Kanpur</p>
+                </div>
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="#services" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Services</a>
+                <a href="#about" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">About</a>
+                <div class="h-4 w-px bg-gray-300"></div>
+                <a href="{% url 'student_login' %}" class="text-sm font-medium text-slate-700 hover:text-blue-600 transition-colors">Student Login</a>
+                <a href="{% url 'admin_login' %}" class="px-5 py-2.5 rounded-full text-sm font-semibold bg-slate-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
+                    Admin Access
+                </a>
+            </nav>
+
+            <button id="mobile-menu-btn" class="md:hidden text-slate-800 p-2">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+            <div class="flex flex-col p-4 space-y-3">
+                <a href="#services" class="block px-4 py-2 hover:bg-gray-50 rounded">Services</a>
+                <a href="#about" class="block px-4 py-2 hover:bg-gray-50 rounded">About</a>
+                <a href="{% url 'student_login' %}" class="block px-4 py-3 rounded-lg bg-blue-50 text-blue-700 font-semibold mt-2">Student Login</a>
+                <a href="{% url 'admin_login' %}" class="block px-4 py-3 rounded-lg bg-slate-100 text-slate-700 font-semibold">Admin Login</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/40 z-10"></div>
+            <img src="{% static 'pictures/UIET.jpg' %}" alt="Campus" class="hero-img w-full h-full object-cover">
+        </div>
+
+        <div class="container mx-auto px-4 relative z-20 text-center lg:text-left">
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/2 space-y-6">
+                    <div class="inline-flex items-center px-3 py-1 rounded-full border border-blue-400/30 bg-blue-500/10 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-2 reveal active">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 mr-2 animate-pulse"></span> Official Portal
+                    </div>
+                    
+                    <h1 class="text-4xl lg:text-6xl font-extrabold text-white leading-tight reveal active" style="transition-delay: 100ms;">
+                        Director's Office <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400" id="typed-text"></span>
+                    </h1>
+                    
+                    <p class="text-lg text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed reveal active" style="transition-delay: 200ms;">
+                        Empowering students and faculty with a seamless, paperless administrative experience. Certificates, verifications, and approvals—now just a click away.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4 reveal active" style="transition-delay: 300ms;">
+                        <a href="{% url 'student_login' %}" class="px-8 py-4 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 group">
+                            Student Login 
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#services" class="px-8 py-4 rounded-xl font-bold text-slate-300 border border-slate-600 hover:bg-white/10 hover:text-white transition-all">
+                            Explore Services
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:w-1/2 hidden lg:block relative reveal active" style="transition-delay: 400ms;">
+                    <div class="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-2xl shadow-2xl max-w-md mx-auto transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                        <div class="flex items-center gap-4 mb-6 border-b border-white/10 pb-4">
+                            <div class="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                                <i class="fa-solid fa-check-circle text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Instant Verification</h3>
+                                <p class="text-slate-300 text-xs">Verify documents in real-time</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="h-2 bg-white/20 rounded-full w-3/4"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-full"></div>
+                            <div class="h-2 bg-white/10 rounded-full w-5/6"></div>
+                        </div>
+                        <div class="mt-6 flex justify-between items-center">
+                            <span class="text-white font-mono text-sm">Status: <span class="text-green-400">Active</span></span>
+                            <div class="px-3 py-1 bg-blue-600 rounded text-xs text-white font-bold">New</div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-50"></div>
+                    <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500 rounded-full blur-[80px] opacity-40"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-20">
+            <svg class="relative block w-full h-[60px] md:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="fill-gray-50"></path>
+            </svg>
+        </div>
+    </section>
+
+    <section id="services" class="py-24 bg-gray-50 relative">
+        <div class="container mx-auto px-4">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Our Offerings</h2>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Core Digital Services</h3>
+                <div class="h-1.5 w-20 bg-blue-600 mx-auto rounded-full"></div>
+                <p class="mt-6 text-slate-600 text-lg">
+                    Select your role to access specific modules designed for students, verifiers, and administration.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                
+                <a href="{% url 'student_login' %}" class="group reveal relative bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+                    
+                    <div class="relative z-10 h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-blue-200 mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    
+                    <h3 class="relative z-10 text-2xl font-bold text-slate-800 mb-3 group-hover:text-blue-600 transition-colors">Student Portal</h3>
+                    
+                    <p class="relative z-10 text-slate-500 leading-relaxed mb-6">
+                        Apply for Bonafide, Character, and Migration certificates. Track your application status in real-time and download signed PDFs.
+                    </p>
+                    
+                    <div class="relative z-10 flex items-center text-blue-600 font-bold text-sm uppercase tracking-wide">
+                        Access Dashboard <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                    </div>
+                </a>
+
+                <a href="{% url 'verify_certificate' %}" class="group reveal relative bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" style="transition-delay: 100ms;">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+                    
+                    <div class="relative z-10 h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-200 mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    
+                    <h3 class="relative z-10 text-2xl font-bold text-slate-800 mb-3 group-hover:text-emerald-600 transition-colors">Verify Documents</h3>
+                    
+                    <p class="relative z-10 text-slate-500 leading-relaxed mb-6">
+                        Public tool for employers and organizations to validate the authenticity of certificates issued by UIET using unique IDs.
+                    </p>
+                    
+                    <div class="relative z-10 flex items-center text-emerald-600 font-bold text-sm uppercase tracking-wide">
+                        Check Validity <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                    </div>
+                </a>
+
+                <a href="{% url 'admin_login' %}" class="group reveal relative bg-white rounded-3xl p-8 border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300" style="transition-delay: 200ms;">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+                    
+                    <div class="relative z-10 h-16 w-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 text-white flex items-center justify-center text-3xl shadow-lg shadow-slate-300 mb-8 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                    
+                    <h3 class="relative z-10 text-2xl font-bold text-slate-800 mb-3 group-hover:text-slate-600 transition-colors">Director's Office</h3>
+                    
+                    <p class="relative z-10 text-slate-500 leading-relaxed mb-6">
+                        Restricted area for Director and APEC staff. Manage incoming requests, verify records, and digitally sign certificates.
+                    </p>
+                    
+                    <div class="relative z-10 flex items-center text-slate-700 font-bold text-sm uppercase tracking-wide">
+                        Admin Login <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    
+
+    <section id="about" class="py-24 bg-white overflow-hidden relative">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                
+                <div class="reveal">
+                    <h2 class="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">About The Portal</h2>
+                    <h3 class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+                        Digitizing the Future of <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Academic Administration</span>
+                    </h3>
+                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+                        The Director's Portal is an initiative by UIET CSJMU to transition from manual, paper-based workflows to a secure, high-speed digital ecosystem. We aim to provide transparency, reduce processing time, and ensure data integrity for all stakeholders.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-xl">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold text-slate-900">Accelerated Processing</h4>
+                                <p class="text-slate-500">Requests move instantly through our 2-Tier system (APEC Verification → Director Approval), cutting delays by 90%.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 text-xl">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold text-slate-900">Tamper-Proof Security</h4>
+                                <p class="text-slate-500">Every issued certificate is embedded with a unique QR code and cryptographic hash, making forgery impossible.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-12 w-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 text-xl">
+                                <i class="fa-solid fa-leaf"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold text-slate-900">100% Paperless</h4>
+                                <p class="text-slate-500">Contributing to a greener campus by eliminating physical forms and manual record-keeping.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative reveal" style="transition-delay: 200ms;">
+                    <div class="absolute -top-20 -right-20 w-72 h-72 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full blur-3xl opacity-70"></div>
+                    
+                    <div class="relative z-10 bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-xl">
+                        <div class="text-center mb-8">
+                            <h4 class="text-xl font-bold text-slate-800">System Impact</h4>
+                            <p class="text-sm text-slate-500">Live statistics from the portal</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-6 rounded-2xl shadow-sm text-center border border-slate-100">
+                                <p class="text-4xl font-extrabold text-blue-600 mb-1">500+</p>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Certificates Issued</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm text-center border border-slate-100">
+                                <p class="text-4xl font-extrabold text-emerald-500 mb-1">24h</p>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Avg. Approval Time</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm text-center border border-slate-100">
+                                <p class="text-4xl font-extrabold text-purple-600 mb-1">1.2k</p>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Active Students</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-sm text-center border border-slate-100">
+                                <p class="text-4xl font-extrabold text-orange-500 mb-1">Zero</p>
+                                <p class="text-xs font-semibold text-slate-400 uppercase">Manual Errors</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 bg-slate-900 rounded-xl p-4 flex items-center justify-between text-white">
+                            <div class="flex items-center gap-3">
+                                <div class="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-sm font-mono">System Online</span>
+                            </div>
+                            <i class="fa-solid fa-server text-slate-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-300 border-t border-slate-800 pt-16 pb-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
+                <div class="md:col-span-5 space-y-4">
+                    <div class="flex items-center gap-3">
+                         <img src="{% static 'pictures/logo.png' %}" alt="Logo" class="h-10 w-10 brightness-0 invert opacity-80">
+                         <h4 class="text-xl font-bold text-white">Director's Office Portal</h4>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+                        University Institute of Engineering & Technology, CSJMU. <br>
+                        Dedicated to academic excellence and streamlined student services through digital innovation.
+                    </p>
+                </div>
+                
+                <div class="md:col-span-3">
+                    <h5 class="text-white font-semibold mb-4">Quick Navigation</h5>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Home</a></li>
+                        <li><a href="https://csjmu.ac.in/" target="_blank" class="hover:text-blue-400 transition-colors">University Website</a></li>
+                        <li><a href="{% url 'student_login' %}" class="hover:text-blue-400 transition-colors">Student Dashboard</a></li>
+                        <li><a href="{% url 'verify_certificate' %}" class="hover:text-blue-400 transition-colors">Verify Documents</a></li>
+                    </ul>
+                </div>
+
+                <div class="md:col-span-4">
+                    <h5 class="text-white font-semibold mb-4">Get in Touch</h5>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-map-pin mt-1 text-blue-500"></i>
+                            <span>UIET Campus, CSJMU, Kalyanpur, <br>Kanpur, Uttar Pradesh - 208024</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone text-blue-500"></i>
+                            <a href="tel:05122246609" class="hover:text-white">0512-2246609</a>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope text-blue-500"></i>
+                            <a href="mailto:director@uiet.csjmu.ac.in" class="hover:text-white">director@uiet.csjmu.ac.in</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500">
+                <p>&copy; {% now "Y" %} UIET, CSJMU. All Rights Reserved.</p>
+                <div class="mt-2 md:mt-0">
+                    Designed & Developed by <span class="text-slate-400">Satyam Pathak</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Preloader Logic
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('preloader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }, 800);
+        });
+
+        // 2. Scroll Progress Bar Logic
+        window.onscroll = function() {
+            // A. Progress Bar
+            var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            var scrolled = (winScroll / height) * 100;
+            document.getElementById("progressBar").style.width = scrolled + "%";
+
+            // B. Navbar Sticky Logic
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-md');
+            } else {
+                navbar.classList.remove('shadow-md');
+            }
+        };
+
+        // 3. Typed JS Setup
+        var typed = new Typed('#typed-text', {
+            strings: ['Automation Portal', 'Student Services', 'Digital Platform'],
+            typeSpeed: 50,
+            backSpeed: 30,
+            loop: true,
+            backDelay: 3000,
+            showCursor: false
+        });
+
+        // 4. Mobile Menu Toggle
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+
+        // 5. Scroll Reveal Animation
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 150;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal();
+    </script>
+</body>
+</html>
+
+    

@@ -1,0 +1,25 @@
+{% extends 'certificates/includes/base_certificate.html' %}
+
+{% block certificate_content %}
+    <h2 style="text-decoration: underline; font-weight: bold; margin-top: 60px; margin-bottom: 40px;">
+        Character Certificate
+    </h2>
+    <p style="text-align: justify; font-size: 18px; line-height: 1.8;">
+        {% if certificate.body_text %}
+            {{ certificate.body_text|linebreaksbr }}
+        {% else %}
+            
+            This is to certify that <b>{{ student.full_name }}</b> 
+            {{ student.parent_relation }} <b>{{ student.father_name }}</b> 
+            (Roll No.: <b>{{ student.enrollment_no }}</b>) was a bonafide student of four-year 
+            <b>{{ student.degree }}</b> in <b>{{ student.branch }}</b> 
+            (session {{ student.academic_session }}) at the University Institute of Engineering & Technology (UIET), 
+            Chhatrapati Shahu Ji Maharaj University, Kanpur.
+            <br><br>
+            To the best of my knowledge, {{ student.pronoun_he_she }} bears a good moral character.
+        {% endif %}
+    </p>
+    <p style="text-align: justify; font-size: 18px; line-height: 1.8; margin-top: 50px;">
+        We wish {{ student.pronoun_his_her|slice:'0:-1' }}m all the very best for {{ student.pronoun_his_her }} bright future.
+    </p>
+{% endblock %} 

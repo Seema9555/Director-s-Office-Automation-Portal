@@ -1,0 +1,6 @@
+{% extends 'certificates/includes/base_certificate.html' %}
+
+{# This block will be filled with the rendered HTML from the database template #}
+{% block certificate_content %}
+    {{ rendered_body|safe }}
+{% endblock %}

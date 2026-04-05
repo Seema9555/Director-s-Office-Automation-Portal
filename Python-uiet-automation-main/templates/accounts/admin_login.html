@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Login | Director's Office Portal</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+        /* Smooth Reveal Animation */
+        .reveal-up {
+            animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div class="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-slate-300/30 blur-[100px] animate-pulse"></div>
+        <div class="absolute bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-300/20 blur-[100px]"></div>
+    </div>
+
+    <a href="{% url 'home' %}" class="absolute top-6 left-6 z-50 flex items-center gap-2 px-5 py-2.5 bg-white/80 backdrop-blur-md border border-white/40 rounded-full shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 group text-slate-700 text-sm font-semibold">
+        <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+        <span>Back to Home</span>
+    </a>
+
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-5xl overflow-hidden flex flex-col md:flex-row min-h-[600px] reveal-up border border-slate-100">
+        
+        <div class="hidden md:flex md:w-1/2 bg-slate-900 relative items-center justify-center p-12 text-white overflow-hidden">
+            <div class="absolute inset-0 z-0">
+                <img src="{% static 'pictures/UIET.jpg' %}" alt="Campus" class="w-full h-full object-cover opacity-30 mix-blend-overlay grayscale">
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950/90"></div>
+            </div>
+
+            <div class="relative z-10 text-center">
+                <div class="mb-6 inline-block p-4 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 shadow-2xl ring-1 ring-white/20">
+                    <img src="{% static 'pictures/logo.png' %}" alt="UIET Logo" class="h-24 w-24 drop-shadow-xl brightness-0 invert opacity-90">
+                </div>
+                <h1 class="text-3xl font-bold mb-3 tracking-tight">Director's Office</h1>
+                <p class="text-slate-300 text-lg font-light leading-relaxed max-w-sm mx-auto">
+                    Restricted Access. <br>Secure portal for administrative management and approvals.
+                </p>
+                
+                <div class="mt-8 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/30 text-indigo-300 text-xs font-semibold tracking-wider uppercase">
+                    <i class="fa-solid fa-shield-halved"></i> Secure Gateway
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 right-0 w-full h-full opacity-10" 
+                 style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #fff 10px, #fff 11px);">
+            </div>
+        </div>
+
+        <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white relative">
+            
+            <div class="max-w-md mx-auto w-full">
+                <div class="text-center md:text-left mb-10">
+                    <div class="inline-flex md:hidden items-center justify-center h-12 w-12 rounded-full bg-slate-100 mb-4 text-slate-700 text-xl">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-900 mb-2">Admin Login</h2>
+                    <p class="text-slate-500">Please verify your credentials to continue.</p>
+                </div>
+
+                {% if messages %}
+                    <div class="mb-6 space-y-2">
+                        {% for message in messages %}
+                            <div class="p-4 rounded-xl text-sm font-medium border-l-4 shadow-sm animate-pulse flex items-center gap-3
+                                {% if message.tags == 'error' %} bg-red-50 text-red-700 border-red-500
+                                {% else %} bg-blue-50 text-blue-700 border-blue-500 {% endif %}">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form action="{% url 'admin_login' %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-user-tie text-gray-400 group-focus-within:text-slate-700 transition-colors"></i>
+                        </div>
+                        <input type="text" id="id_username" name="username" required
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 transition-all placeholder-transparent peer"
+                            placeholder="Username">
+                        <label for="id_username" 
+                            class="absolute left-11 -top-2.5 bg-white px-2 text-xs font-semibold text-gray-500 transition-all 
+                                   peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 
+                                   peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-slate-700">
+                            Username
+                        </label>
+                    </div>
+
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-key text-gray-400 group-focus-within:text-slate-700 transition-colors"></i>
+                        </div>
+                        <input type="password" id="id_password" name="password" required
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:border-slate-500 focus:ring-4 focus:ring-slate-500/10 transition-all placeholder-transparent peer"
+                            placeholder="Password">
+                        <label for="id_password" 
+                            class="absolute left-11 -top-2.5 bg-white px-2 text-xs font-semibold text-gray-500 transition-all 
+                                   peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-3.5 
+                                   peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-slate-700">
+                            Password
+                        </label>
+                    </div>
+
+                    <button type="submit" 
+                        class="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl shadow-lg shadow-slate-500/30 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock-open"></i>
+                        <span>Secure Access</span>
+                    </button>
+                </form>
+
+                <div class="mt-8 text-center pt-6 border-t border-slate-100">
+                    <p class="text-sm text-gray-500">
+                        Not an administrator? 
+                        <a href="{% url 'student_login' %}" class="text-blue-600 font-bold hover:text-blue-800 transition-colors flex items-center justify-center gap-1 mt-2">
+                            Go to Student Login <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="absolute bottom-4 right-6 hidden md:block">
+                <p class="text-[10px] text-slate-300 uppercase tracking-widest font-semibold opacity-50">Authorized Personnel Only</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
