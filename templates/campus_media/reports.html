@@ -1,0 +1,56 @@
+{% extends 'campus_media/base_media.html' %}
+
+{% block content %}
+<div class="card animate-fade-in" style="padding: 24px; max-width: 1000px; margin: 0 auto;">
+    <h2 style="display: flex; align-items: center; gap: 10px; color: var(--danger); margin-top: 0;">
+        <i class="ph-fill ph-warning"></i> User Reports
+    </h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">
+        Review reports submitted by users. You can view the automatically captured screenshots below to verify the claims.
+    </p>
+
+    <div style="display: grid; gap: 20px;">
+        {% for report in pending_reports %}
+        <div style="border: 1px solid var(--border-light); border-radius: 12px; padding: 20px; background: #fffcfc;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                <div>
+                    <h4 style="margin: 0 0 4px 0; font-size: 1.1rem;">
+                        Report by <strong>{{ report.reporter.username }}</strong>
+                    </h4>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">
+                        Submitted {{ report.created_at|timesince }} ago
+                    </div>
+                </div>
+                <a href="{% url 'resolve_report' report.id %}" class="btn-primary" style="background: var(--success); text-decoration: none;">
+                    <i class="ph ph-check"></i> Mark as Resolved
+                </a>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <strong>Reason:</strong>
+                <p style="margin: 4px 0 0 0; padding: 12px; background: var(--bg-light); border-radius: 8px;">
+                    {{ report.reason|default:"No reason provided." }}
+                </p>
+            </div>
+
+            <div>
+                <strong>Auto-Captured Screenshot:</strong>
+                <div style="margin-top: 8px; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; background: #fcfcfc;">
+                    {% if report.screenshot %}
+                    <img src="{{ report.screenshot.url }}" alt="Report Screenshot" style="width: 100%; height: auto; max-height: 500px; object-fit: contain;">
+                    {% else %}
+                    <div style="padding: 20px; text-align: center; color: var(--text-muted);">Screenshot unavailable.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: var(--text-muted); border: 2px dashed var(--border-light); border-radius: 12px;">
+            <i class="ph-fill ph-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 16px;"></i>
+            <h3>All Caught Up!</h3>
+            <p>There are no pending reports to review.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

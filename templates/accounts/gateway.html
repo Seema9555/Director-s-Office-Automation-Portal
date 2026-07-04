@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth antialiased" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="UIET Portal Gateway - Centralized access to Academic and Social platforms.">
+    
+    <title>Gateway | UIET Portal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* ==========================================
+           [1] GATEWAY MASTER CSS ENGINE
+           ========================================== */
+        
+        :root {
+            --ac-color: #0284c7; /* Academic Blue */
+            --ac-glow: rgba(2, 132, 199, 0.4);
+            --sm-color: #8b5cf6; /* Social Purple */
+            --sm-glow: rgba(139, 92, 246, 0.4);
+        }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            background-color: #0f172a; /* Dark slate base */
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            body { flex-direction: row; }
+        }
+
+        /* --- GLOBAL BACKGROUND (Using your generated images) --- */
+        .gateway-bg {
+            position: absolute;
+            inset: 0;
+            background-image: url('{% static "pictures/portal_cover_dark.jpg" %}'); /* Fallback to your dark mode image */
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3;
+            z-index: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            filter: grayscale(80%) blur(2px);
+        }
+
+        /* --- THE SPLIT PANELS --- */
+        .split-pane {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            overflow: hidden;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            cursor: pointer;
+        }
+
+        /* Overlays for the specific vibe */
+        .split-pane::before {
+            content: '';
+            position: absolute; inset: 0;
+            z-index: -1;
+            transition: opacity 0.4s;
+        }
+
+        /* ACADEMIC (Left/Top) */
+        .pane-academic::before {
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(2,132,199,0.85) 100%);
+            opacity: 0.8;
+        }
+        
+        /* SOCIAL/NEXUS (Right/Bottom) */
+        .pane-social::before {
+            background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(139,92,246,0.85) 100%);
+            opacity: 0.8;
+        }
+
+        /* --- HOVER DYNAMICS (Desktop Only) --- */
+        @media (min-width: 768px) {
+            .split-pane:hover {
+                flex: 1.4; /* Expand the hovered pane */
+            }
+            .split-pane:hover::before {
+                opacity: 0.95; /* Intensify color */
+            }
+            
+            /* Dim the non-hovered pane */
+            body:has(.pane-academic:hover) .pane-social { filter: grayscale(80%) brightness(0.5); }
+            body:has(.pane-social:hover) .pane-academic { filter: grayscale(80%) brightness(0.5); }
+            
+            /* Remove background blur on hover */
+            body:has(.split-pane:hover) .gateway-bg {
+                filter: grayscale(0%) blur(0px);
+                transform: scale(1.02);
+                opacity: 0.5;
+            }
+        }
+
+        /* --- CONTENT STYLING --- */
+        .content-box {
+            text-align: center;
+            color: #ffffff;
+            z-index: 20;
+            padding: 2rem;
+            transform: translateY(0);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .icon-container {
+            width: 100px; height: 100px;
+            margin: 0 auto 24px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.5s;
+        }
+        
+        .pane-academic .icon-container { box-shadow: 0 10px 30px var(--ac-glow); color: #38bdf8; }
+        .pane-social .icon-container { box-shadow: 0 10px 30px var(--sm-glow); color: #c084fc; }
+
+        .split-pane:hover .icon-container {
+            transform: scale(1.1) translateY(-10px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 8px;
+            line-height: 1.1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        @media (min-width: 768px) { .title { font-size: 3.5rem; } }
+
+        .subtitle {
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 300px;
+            margin: 0 auto 32px;
+            line-height: 1.5;
+        }
+
+        /* --- THE BUTTON --- */
+        .gateway-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 32px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pane-academic .gateway-btn:hover { background: #ffffff; color: var(--ac-color); border-color: #ffffff; box-shadow: 0 0 20px var(--ac-glow); }
+        .pane-social .gateway-btn:hover { background: #ffffff; color: var(--sm-color); border-color: #ffffff; box-shadow: 0 0 20px var(--sm-glow); }
+
+        .btn-arrow { transition: transform 0.3s; }
+        .gateway-btn:hover .btn-arrow { transform: translateX(5px); }
+
+        /* Central Logo / Divider */
+        .center-brand {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: #0f172a;
+            border: 4px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 900; font-family: 'Outfit', sans-serif;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        @media (min-width: 768px) {
+            .center-brand { width: 80px; height: 80px; font-size: 1.5rem; border-width: 6px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <symbol id="icon-academic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><polyline points="10 2 10 10 13 7 16 10 16 2"/></symbol>
+            <symbol id="icon-social" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3"/><path d="M21 12.1H3"/><path d="M15.1 18H3"/><path d="M21 6.1h.01"/><path d="M17.1 18h.01"/></symbol>
+            <symbol id="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></symbol>
+        </defs>
+    </svg>
+
+    <div class="gateway-bg"></div>
+
+    <div class="center-brand">UIET</div>
+
+    <a href="{% url 'dashboard_redirect' %}?mode=academic" class="split-pane pane-academic group">
+        <div class="content-box">
+            <div class="icon-container">
+                <svg class="w-12 h-12" stroke="currentColor" fill="none" viewBox="0 0 24 24"><use href="#icon-academic"></use></svg>
+            </div>
+            
+            <h1 class="title">Director Portal</h1>
+            <p class="subtitle">Official dashboard for academic records, certifications, and administrative workflows.</p>
+            
+            <div class="gateway-btn">
+                Enter Office
+                <svg class="w-5 h-5 btn-arrow"><use href="#icon-arrow"></use></svg>
+            </div>
+        </div>
+    </a>
+
+    <a href="{% url 'dashboard_redirect' %}?mode=social" class="split-pane pane-social group">
+        <div class="content-box">
+            <div class="icon-container">
+                <svg class="w-12 h-12" stroke="currentColor" fill="none" viewBox="0 0 24 24"><use href="#icon-social"></use></svg>
+            </div>
+            
+            <h1 class="title">UIET Campus Media </h1>
+            <p class="subtitle">The campus social hub. Connect with peers, share updates, and stay in the loop.</p>
+            
+            <div class="gateway-btn">
+                Enter Campus
+                <svg class="w-5 h-5 btn-arrow"><use href="#icon-arrow"></use></svg>
+            </div>
+        </div>
+    </a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const boxes = document.querySelectorAll('.content-box');
+            boxes.forEach((box, index) => {
+                box.style.opacity = '0';
+                box.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    box.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    box.style.opacity = '1';
+                    box.style.transform = 'translateY(0)';
+                }, 200 + (index * 200));
+            });
+        });
+    </script>
+</body>
+</html>

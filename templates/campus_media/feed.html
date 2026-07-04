@@ -1,0 +1,793 @@
+{% extends 'campus_media/base_media.html' %}
+
+{% block title %}Campus Buzz | UIET Media{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       [1] MEGA FEED CSS ENGINE & ANIMATIONS
+       ========================================== */
+
+    /* Thematic Gradients */
+    .bg-story-ring {
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    }
+    .bg-announcement-glow {
+        background: radial-gradient(circle at top right, rgba(239, 68, 68, 0.15), transparent 60%);
+    }
+    
+    /* Double Tap Heart Animation */
+    .heart-explosion {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+        filter: drop-shadow(0 10px 20px rgba(236, 72, 153, 0.5));
+    }
+    @keyframes explodeHeart {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+        15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        30% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+    .animate-heart-explode {
+        animation: explodeHeart 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Post Card Hover Dynamics */
+    .post-card {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    }
+    .post-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Horizontal Story Scroller */
+    .story-scroller {
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+    .story-item {
+        scroll-snap-align: start;
+        transition: transform 0.2s;
+    }
+    .story-item:active {
+        transform: scale(0.95);
+    }
+
+    /* Comment Drawer - Smooth Expand/Collapse */
+    .comment-section {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+    }
+    .comment-section.is-open {
+        grid-template-rows: 1fr;
+        opacity: 1;
+        margin-top: 1rem;
+    }
+    .comment-inner {
+        overflow: hidden;
+    }
+
+    /* Skeleton Loading Shimmer Effect */
+    .shimmer {
+        background: #f6f7f8;
+        background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+        background-repeat: no-repeat;
+        background-size: 800px 100%; 
+        animation-duration: 1.5s;
+        animation-fill-mode: forwards; 
+        animation-iteration-count: infinite;
+        animation-name: placeholderShimmer;
+        animation-timing-function: linear;
+    }
+    @keyframes placeholderShimmer {
+        0% { background-position: -468px 0; }
+        100% { background-position: 468px 0; }
+    }
+
+    /* Floating Share Sheet Bottom-Up Modal */
+    .share-sheet {
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .share-sheet.active {
+        transform: translateY(0);
+    }
+
+    /* Custom Media Player */
+    .media-container {
+        position: relative;
+        background-color: #0f172a;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    .media-container img, .media-container video {
+        width: 100%;
+        max-height: 600px;
+        object-fit: contain;
+    }
+    .custom-video-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        padding: 2rem 1rem 1rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .media-container:hover .custom-video-controls {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex items-center justify-between mb-6 animate-slide-up" style="animation-delay: 0.1s;">
+    <div>
+        <h1 class="text-3xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Campus <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-500">Buzz</span>
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">What's happening around UIET right now.</p>
+    </div>
+    
+    <div class="flex gap-2">
+        <button class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-sm hover:shadow-md transition-all btn-press">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="mb-8 animate-slide-up" style="animation-delay: 0.15s;">
+    <div class="flex gap-4 overflow-x-auto story-scroller no-scrollbar pb-4 pt-2 px-1">
+        
+        <div class="story-item flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer group" onclick="window.location.href='{% url 'create_post' %}'">
+            <div class="relative w-[72px] h-[72px] rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 p-1 flex items-center justify-center group-hover:border-brand-500 transition-colors">
+                <div class="w-full h-full rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=8b5cf6&color=fff" alt="You" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity">
+                    <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white drop-shadow-md"><use href="#icon-plus"></use></svg>
+                    </div>
+                </div>
+            </div>
+            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Add Post</span>
+        </div>
+
+        {% for post in posts|slice:":8" %}
+        {% ifchanged post.author %}
+        <div class="story-item flex flex-col items-center gap-2 flex-shrink-0 cursor-pointer group" onclick="StoryEngine.open('{{ post.author.username }}', '{{ post.content|truncatechars:50|escapejs }}', '{% if post.image %}{{ post.image.url }}{% endif %}')">
+            <div class="w-[72px] h-[72px] rounded-full bg-story-ring p-[3px] group-hover:scale-105 transition-transform shadow-md">
+                <div class="w-full h-full bg-white dark:bg-slate-900 rounded-full border-[3px] border-white dark:border-slate-900 flex items-center justify-center overflow-hidden relative">
+                    {% if post.author.is_superuser %}
+                        <div class="absolute inset-0 bg-amber-400 flex items-center justify-center text-white font-bold text-2xl">{{ post.author.username|make_list|first|upper }}</div>
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=random" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+            </div>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-400 truncate w-16 text-center">
+                {% if post.author.is_superuser %}Director{% else %}{{ post.author.first_name|default:post.author.username }}{% endif %}
+            </span>
+        </div>
+        {% endifchanged %}
+        {% endfor %}
+        
+        <div class="story-item flex flex-col items-center justify-center gap-2 flex-shrink-0 cursor-pointer group px-2">
+            <div class="w-[72px] h-[72px] rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-brand-500 transition-colors shadow-sm border border-slate-200 dark:border-slate-700">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-8 relative group animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-brand-500 to-accent-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+    
+    <div class="relative bg-white dark:bg-slate-800 rounded-[24px] p-5 shadow-card flex gap-4 items-center border border-white/50 dark:border-slate-700/50 cursor-text" onclick="window.location.href='{% url 'create_post' %}'">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 flex-shrink-0 flex items-center justify-center text-white font-bold text-lg shadow-inner">
+            {{ request.user.username|make_list|first|upper }}
+        </div>
+        
+        <div class="flex-1 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors rounded-2xl px-5 py-3.5 border border-slate-100 dark:border-slate-700">
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Spark a conversation, {{ request.user.first_name|default:request.user.username }}...</p>
+        </div>
+        
+        <div class="flex gap-1 hidden sm:flex">
+            <button class="w-10 h-10 rounded-full flex items-center justify-center text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-colors tooltip-trigger" data-tooltip="Add Image">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-46.07-46.06a16,16,0,0,0-22.63,0l-20.68,20.69L98.63,105.37a16,16,0,0,0-22.63,0L40,141.37V56ZM40,164l47.31-47.32,28,28a16,16,0,0,0,22.63,0l20.68-20.68L216,181.37V200H40ZM104,96A12,12,0,1,1,92,84,12,12,0,0,1,104,96Z"></path></svg>
+            </button>
+            <button class="w-10 h-10 rounded-full flex items-center justify-center text-accent-500 hover:bg-accent-50 dark:hover:bg-accent-900/30 transition-colors tooltip-trigger" data-tooltip="Add Video">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 256 256"><path d="M237.43,84.9a16,16,0,0,0-15.66-1.56L184,101.44V88a16,16,0,0,0-16-16H24A16,16,0,0,0,8,88V168a16,16,0,0,0,16,16H168a16,16,0,0,0,16-16V154.56l37.77,18.1A16,16,0,0,0,244.6,158.4l-.12-73.34A16,16,0,0,0,237.43,84.9ZM168,168H24V88H168v80Zm60-9.84-44-21.1V118.94l44-21.1Z"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="sticky top-16 md:top-0 z-20 bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-xl py-3 mb-6 -mx-4 px-4 md:mx-0 md:px-0 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3 overflow-x-auto no-scrollbar">
+    <a href="?filter=all" class="px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap {% if not request.GET.filter or request.GET.filter == 'all' %}bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md{% else %}bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
+        Campus Global
+    </a>
+    <a href="?filter=announcements" class="px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 {% if request.GET.filter == 'announcements' %}bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md shadow-red-500/20{% else %}bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700{% endif %}">
+        <svg class="w-4 h-4"><use href="#icon-alert"></use></svg> Official Notice
+    </a>
+    <div class="h-6 w-[1px] bg-slate-300 dark:bg-slate-700 mx-1"></div>
+    <button class="px-4 py-2 rounded-full text-sm font-semibold bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 flex items-center gap-2 btn-press" onclick="Toast.show('Trending filters coming soon!', 'info')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> Trending
+    </button>
+</div>
+
+<div class="space-y-6 md:space-y-8" id="feed-container">
+    
+    {% for post in posts %}
+    <article class="post-card bg-white dark:bg-slate-800 rounded-[28px] p-5 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-card animate-slide-up relative {% if post.is_announcement %}bg-announcement-glow{% endif %}" id="post-{{ post.id }}" style="animation-delay: {{ forloop.counter|default:1|add:2 }}00ms;">
+        
+        <div class="flex justify-between items-start mb-5">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.href='{% url 'profile_view' %}'">
+                
+                <div class="relative">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full p-[2px] {% if post.author.is_superuser %}bg-gradient-to-tr from-amber-400 to-red-500{% else %}bg-gradient-to-tr from-brand-400 to-cyan-400{% endif %}">
+                        <div class="w-full h-full bg-white dark:bg-slate-900 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl text-slate-700 dark:text-slate-200 overflow-hidden">
+                            {% if post.author.profile_pic %}
+                                <img src="{{ post.author.profile_pic.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                {{ post.author.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                </div>
+                
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h3 class="font-bold text-slate-900 dark:text-white text-[1.05rem] leading-none group-hover:underline decoration-brand-500 decoration-2 underline-offset-2">
+                            {{ post.author.first_name|default:post.author.username }}
+                        </h3>
+                        {% if post.author.is_superuser %}
+                            <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 256 256"><path d="M226.53,114.6l-26-25.11a15.93,15.93,0,0,1-4.71-14.47l6.14-35.6a16,16,0,0,0-23.22-16.88l-31.9,16.76a16,16,0,0,1-15.2,0L100.41,22.54a16,16,0,0,0-23.22,16.88l6.14,35.6a15.93,15.93,0,0,1-4.71,14.47l-26,25.11a16,16,0,0,0,8.85,27.27l35.84,5.21a16.14,16.14,0,0,1,12.06,8.76l16.05,32.5a16,16,0,0,0,28.66,0l16.05-32.5a16.14,16.14,0,0,1,12.06-8.76l35.84-5.21a16,16,0,0,0,8.85-27.27ZM116,152a8,8,0,0,1-8,8H88a8,8,0,0,1-8-8V104a8,8,0,0,1,16,0v40h12A8,8,0,0,1,116,152Zm56.49-14a8,8,0,0,1-11.31,11.31L144,132.12V152a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0v19.88l17.18-17.19a8,8,0,0,1,11.31,11.31L155.31,136Z"></path></svg>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-2 text-[13px] font-medium text-slate-500 dark:text-slate-400 mt-1">
+                        <span>@{{ post.author.username }}</span>
+                        <span class="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></span>
+                        <span>{{ post.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative group dropdown-container">
+                <button class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 256 256"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm44-12a12,12,0,1,0,12,12A12,12,0,0,0,184,116ZM72,116a12,12,0,1,0,12,12A12,12,0,0,0,72,116Z"></path></svg>
+                </button>
+                <div class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top-right scale-95 group-hover:scale-100 z-30 overflow-hidden">
+                    {% if request.user != post.author %}
+                    <form method="POST" action="#" onsubmit="event.preventDefault(); Toast.show('Mute User feature coming soon!', 'info');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full px-5 py-3.5 text-left text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors">
+                            <svg class="w-5 h-5 text-slate-400"><use href="#icon-no"></use></svg> Mute User
+                        </button>
+                    </form>
+                    <button onclick="reportContent('post', {{ post.id }}, 'post-{{ post.id }}')" class="w-full px-5 py-3.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 border-t border-slate-100 dark:border-slate-700 transition-colors">
+                        <svg class="w-5 h-5"><use href="#icon-alert"></use></svg> Report Post
+                    </button>
+                    {% else %}
+                    <button class="w-full px-5 py-3.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> Delete Post
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="pl-0 sm:pl-[68px]">
+            
+            {% if post.is_announcement %}
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-4 border border-red-200 dark:border-red-800">
+                <svg class="w-4 h-4"><use href="#icon-alert"></use></svg> Director's Notice
+            </div>
+            {% endif %}
+
+            <p class="text-slate-800 dark:text-slate-200 text-[1.05rem] leading-relaxed mb-4 whitespace-pre-wrap font-medium content-text">
+                {{ post.content }}
+            </p>
+
+            <div class="relative media-wrapper" ondblclick="FeedEngine.triggerDoubleTapLike({{ post.id }}, this)">
+                <svg class="w-32 h-32 text-accent-500 heart-explosion" fill="currentColor" viewBox="0 0 256 256"><path d="M240,98a57.63,57.63,0,0,1-17,41L133.7,229.62a8,8,0,0,1-11.4,0L33,139a58,58,0,0,1,82-82.1L128,69.05l13.09-12.19A58,58,0,0,1,240,98Z"></path></svg>
+
+                {% if post.image %}
+                <div class="mt-2 mb-5 media-container shadow-inner border border-slate-200/50 dark:border-slate-700 cursor-pointer" onclick="FeedEngine.openLightbox('{{ post.image.url }}')">
+                    <img src="{{ post.image.url }}" alt="Post image" class="w-full h-auto hover:scale-[1.01] transition-transform duration-500" loading="lazy">
+                </div>
+                {% endif %}
+
+                {% if post.video %}
+                <div class="mt-2 mb-5 media-container shadow-inner border border-slate-200/50 dark:border-slate-700 bg-black group relative">
+                    <video id="vid-{{ post.id }}" class="w-full h-auto" loop playsinline>
+                        <source src="{{ post.video.url }}" type="video/mp4">
+                    </video>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:bg-black/20 transition-colors">
+                        <button onclick="FeedEngine.toggleVideo('vid-{{ post.id }}', this)" class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-white/30 transition-all shadow-lg scale-90 group-hover:scale-100 opacity-80 group-hover:opacity-100">
+                            <svg class="w-8 h-8 play-icon" fill="currentColor" viewBox="0 0 256 256"><path d="M228.23,134.69l-136,88A16,16,0,0,1,68,209.05V46.95a16,16,0,0,1,24.23-13.64l136,88A16,16,0,0,1,228.23,134.69Z"></path></svg>
+                            <svg class="w-8 h-8 pause-icon hidden" fill="currentColor" viewBox="0 0 256 256"><path d="M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between pt-1 mt-2">
+                <div class="flex items-center gap-2 sm:gap-6">
+                    
+                    <button id="like-btn-{{ post.id }}" onclick="FeedEngine.toggleLike({{ post.id }})" class="group flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors font-bold text-[15px] focus:outline-none">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-accent-50 dark:group-hover:bg-accent-900/20 transition-colors relative">
+                            {% if request.user in post.likes.all %}
+                                <svg class="w-7 h-7 text-accent-500 fill-current like-icon" viewBox="0 0 256 256"><path d="M240,98a57.63,57.63,0,0,1-17,41L133.7,229.62a8,8,0,0,1-11.4,0L33,139a58,58,0,0,1,82-82.1L128,69.05l13.09-12.19A58,58,0,0,1,240,98Z"></path></svg>
+                            {% else %}
+                                <svg class="w-7 h-7 like-icon transition-transform group-active:scale-75" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 256 256"><path d="M128,216S28,160,28,92A52,52,0,0,1,128,72a52,52,0,0,1,100,20C228,160,128,216,128,216Z"></path></svg>
+                            {% endif %}
+                        </div>
+                        <span class="like-count tabular-nums">{{ post.likes.count }}</span>
+                    </button>
+
+                    {% if not post.is_announcement %}
+                    <button onclick="FeedEngine.toggleComments({{ post.id }})" class="group flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 transition-colors font-bold text-[15px] focus:outline-none">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-brand-50 dark:group-hover:bg-brand-900/20 transition-colors">
+                            <svg class="w-7 h-7 transition-transform group-active:scale-75" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 256 256"><path d="M216,48H40A16,16,0,0,0,24,64V224a8,8,0,0,0,13.66,5.66L77.66,192H216a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48Z"></path></svg>
+                        </div>
+                        <span class="comment-count tabular-nums">{{ post.comments.count }}</span>
+                    </button>
+                    {% else %}
+                    <div class="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-sm font-bold px-3 py-1.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <svg class="w-4 h-4"><use href="#icon-lock"></use></svg> Disabled
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center gap-1">
+                    <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors btn-press" onclick="Toast.show('Saved to Bookmarks', 'success')">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 256 256"><path d="M192,224l-64-40L64,224V48a8,8,0,0,1,8-8H184a8,8,0,0,1,8,8Z"></path></svg>
+                    </button>
+                    <button onclick="FeedEngine.openShareModal({{ post.id }}, '{{ post.author.username }}')" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors btn-press">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72A8,8,0,0,1,136,200V160H112C60.29,160,24,198.24,24,200a8,8,0,0,1-13.6-7.39C19.56,174.5,50.15,112,112,112h24V72a8,8,0,0,1,13.66-5.66l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            {% if not post.is_announcement %}
+            <div id="comments-{{ post.id }}" class="comment-section">
+                <div class="comment-inner bg-slate-50 dark:bg-slate-900/50 rounded-[20px] p-4 border border-slate-100 dark:border-slate-700">
+                    
+                    <div class="flex gap-3 mb-5 relative">
+                        <div class="w-9 h-9 rounded-full bg-brand-500 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-md mt-1">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                        <div class="flex-1 relative">
+                            <textarea id="comment-input-{{ post.id }}" rows="1" placeholder="Type a reply..." 
+                                class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-[18px] pl-4 pr-12 py-3 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all resize-none overflow-hidden"
+                                oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"
+                                onkeypress="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); FeedEngine.submitComment({{ post.id }}); }"></textarea>
+                            
+                            <button onclick="FeedEngine.submitComment({{ post.id }})" class="absolute right-2 bottom-1.5 w-8 h-8 bg-brand-100 dark:bg-brand-900/40 hover:bg-brand-500 text-brand-600 dark:text-brand-400 hover:text-white rounded-full flex items-center justify-center transition-all btn-press">
+                                <svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 256 256"><path d="M227.32,28.68a16,16,0,0,0-15.66-4.08l-192,64a16,16,0,0,0-2.42,29.84l73.61,36.8,36.8,73.61A16,16,0,0,0,142,240a15.82,15.82,0,0,0,7.13-1.68l192-64A16,16,0,0,0,227.32,28.68ZM149.5,214.34l-31.5-63L167.31,102A8,8,0,0,0,154,90.69L104.7,138l-63-31.5L214.34,41.5Z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="comment-list-{{ post.id }}" class="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                        {% for comment in post.comments.all reversed %}
+                        <div class="flex gap-3 group/comment relative animate-fade-in">
+                            {% if not forloop.last %}
+                            <div class="absolute top-10 left-4 bottom-[-16px] w-[2px] bg-slate-200 dark:bg-slate-700"></div>
+                            {% endif %}
+                            
+                            <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs z-10 border-2 border-slate-50 dark:border-slate-900">
+                                {{ comment.author.username|make_list|first|upper }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 p-3.5 rounded-[18px] rounded-tl-sm shadow-sm">
+                                    <div class="flex justify-between items-baseline mb-1">
+                                        <span class="text-xs font-bold text-slate-900 dark:text-white hover:underline cursor-pointer">{{ comment.author.username }}</span>
+                                        <span class="text-[10px] text-slate-400 font-medium">{{ comment.created_at|timesince }} ago</span>
+                                    </div>
+                                    <p class="text-[13px] text-slate-700 dark:text-slate-300 font-medium">{{ comment.content }}</p>
+                                </div>
+                                <div class="flex gap-4 mt-1.5 ml-2 text-[11px] font-bold text-slate-400">
+                                    <button class="hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Reply</button>
+                                    <button class="hover:text-accent-500 transition-colors flex items-center gap-1"><svg class="w-3 h-3"><use href="#icon-heart"></use></svg> Like</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-6" id="empty-comment-{{ post.id }}">
+                            <div class="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            </div>
+                            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">No replies yet.</p>
+                            <p class="text-xs text-slate-400">Be the first to start the conversation.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+        </div>
+    </article>
+    
+    {% empty %}
+    <div class="bg-white dark:bg-slate-800 rounded-[32px] p-10 md:p-16 text-center border border-slate-100 dark:border-slate-700 shadow-card flex flex-col items-center justify-center animate-slide-up">
+        <div class="relative mb-8">
+            <div class="w-32 h-32 bg-brand-50 dark:bg-brand-900/20 rounded-full flex items-center justify-center z-10 relative border-4 border-white dark:border-slate-800 shadow-xl">
+                <svg class="w-16 h-16 text-brand-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            </div>
+            <div class="absolute inset-0 bg-brand-400 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+        </div>
+        <h3 class="text-2xl font-display font-extrabold text-slate-900 dark:text-white mb-3">No Posts Yet</h3>
+        <p class="text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-[1.05rem] leading-relaxed">The campus feed is currently empty. Be the first to share your thoughts, pictures, or breaking news!</p>
+        <button onclick="window.location.href='{% url 'create_post' %}'" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-bold text-lg shadow-[0_8px_25px_rgba(139,92,246,0.4)] hover:shadow-[0_12px_35px_rgba(139,92,246,0.6)] hover:-translate-y-1 transition-all btn-press flex items-center gap-3">
+            <svg class="w-6 h-6"><use href="#icon-plus"></use></svg> Create The First Post
+        </button>
+    </div>
+    {% endfor %}
+
+    {% if posts %}
+    <div id="infinite-scroll-trigger" class="py-10 flex justify-center">
+        <div class="shimmer w-full max-w-sm h-32 rounded-3xl opacity-50 hidden" id="feed-loader-ui"></div>
+    </div>
+    {% endif %}
+</div>
+
+
+<div id="shareSheet" class="fixed inset-0 z-[10000] hidden items-end sm:items-center justify-center pointer-events-none" aria-hidden="true">
+    <div class="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/70 backdrop-blur-sm pointer-events-auto transition-opacity duration-300 opacity-0" id="shareOverlay" onclick="FeedEngine.closeShareModal()"></div>
+    
+    <div class="share-sheet w-full sm:w-[400px] bg-white dark:bg-slate-800 rounded-t-[32px] sm:rounded-[32px] shadow-2xl pointer-events-auto border border-slate-200/50 dark:border-slate-700 flex flex-col relative pb-safe">
+        <div class="w-full flex justify-center pt-4 pb-2 sm:hidden cursor-grab">
+            <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full"></div>
+        </div>
+        
+        <div class="px-6 py-4 flex justify-between items-center border-b border-slate-100 dark:border-slate-700 hidden sm:flex">
+            <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white">Share Post</h3>
+            <button onclick="FeedEngine.closeShareModal()" class="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"><svg class="w-5 h-5"><use href="#icon-x"></use></svg></button>
+        </div>
+
+        <div class="p-6">
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <button class="flex flex-col items-center gap-2 group" onclick="FeedEngine.copyLink()">
+                    <div class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 group-hover:bg-brand-500 group-hover:text-white transition-all btn-press shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">Copy Link</span>
+                </button>
+                <button class="flex flex-col items-center gap-2 group" onclick="Toast.show('WhatsApp share coming soon', 'info')">
+                    <div class="w-14 h-14 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] group-hover:bg-[#25D366] group-hover:text-white transition-all btn-press shadow-sm">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">WhatsApp</span>
+                </button>
+            </div>
+            
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-2xl p-2 flex items-center border border-slate-200 dark:border-slate-700">
+                <input type="text" id="shareLinkInput" readonly value="https://uietmedia.com/post/123" class="w-full bg-transparent border-none text-slate-500 dark:text-slate-400 text-sm outline-none px-3">
+                <button onclick="FeedEngine.copyLink()" class="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold rounded-xl whitespace-nowrap btn-press hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors">
+                    Copy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="mediaLightbox" class="fixed inset-0 z-[100000] hidden flex-col items-center justify-center bg-black/95 backdrop-blur-xl opacity-0 transition-opacity duration-300">
+    <div class="absolute top-0 w-full p-4 sm:p-6 flex justify-between items-center z-10 bg-gradient-to-b from-black/60 to-transparent">
+        <div class="text-white font-medium text-sm drop-shadow-md">UIET Media Viewer</div>
+        <button onclick="FeedEngine.closeLightbox()" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white backdrop-blur-md transition-colors btn-press">
+            <svg class="w-6 h-6"><use href="#icon-x"></use></svg>
+        </button>
+    </div>
+    <div class="flex-1 w-full flex items-center justify-center p-4">
+        <img id="lightboxImage" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transform scale-95 transition-transform duration-300" alt="Fullscreen Media">
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    /**
+     * =========================================================
+     * [7] THE MEGA FEED JAVASCRIPT ENGINE
+     * Handles complex logic: Web Share API, Custom Video, 
+     * Double-Tap Likes, AJAX Commenting, & Infinite Scroll.
+     * =========================================================
+     */
+    
+    class AdvancedFeedEngine {
+        constructor() {
+            this.csrfToken = this._getCSRFToken();
+            this.shareSheet = document.getElementById('shareSheet');
+            this.shareOverlay = document.getElementById('shareOverlay');
+            this.lightbox = document.getElementById('mediaLightbox');
+            this.lightboxImg = document.getElementById('lightboxImage');
+            
+            this.currentShareLink = '';
+            
+            this._initInfiniteScroll();
+        }
+
+        // --- 1. AJAX Like Engine with Double Tap ---
+
+        triggerDoubleTapLike(postId, wrapperElement) {
+            const heartAnim = wrapperElement.querySelector('.heart-explosion');
+            if(heartAnim) {
+                // Restart animation
+                heartAnim.classList.remove('animate-heart-explode');
+                void heartAnim.offsetWidth; // trigger reflow
+                heartAnim.classList.add('animate-heart-explode');
+            }
+
+            // Fire like request if not already liked (simulate double-tap behaviour)
+            const likeBtn = document.getElementById(`like-btn-${postId}`);
+            const isLiked = likeBtn.querySelector('.like-icon.fill-current') !== null;
+            
+            if(!isLiked) {
+                this.toggleLike(postId);
+            }
+        }
+
+        async toggleLike(postId) {
+            try {
+                const response = await fetch(`/campus/post/${postId}/like/`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': this.csrfToken }
+                });
+                const data = await response.json();
+                
+                const btn = document.getElementById(`like-btn-${postId}`);
+                const iconContainer = btn.firstElementChild;
+                const countSpan = btn.querySelector('.like-count');
+
+                countSpan.textContent = data.likes_count;
+
+                if (data.liked) {
+                    iconContainer.innerHTML = `<svg class="w-7 h-7 text-accent-500 fill-current like-icon animate-modal-pop" viewBox="0 0 256 256"><path d="M240,98a57.63,57.63,0,0,1-17,41L133.7,229.62a8,8,0,0,1-11.4,0L33,139a58,58,0,0,1,82-82.1L128,69.05l13.09-12.19A58,58,0,0,1,240,98Z"></path></svg>`;
+                    btn.classList.replace('text-slate-500', 'text-accent-500');
+                    btn.classList.replace('dark:text-slate-400', 'dark:text-accent-400');
+                } else {
+                    iconContainer.innerHTML = `<svg class="w-7 h-7 like-icon transition-transform group-active:scale-75" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 256 256"><path d="M128,216S28,160,28,92A52,52,0,0,1,128,72a52,52,0,0,1,100,20C228,160,128,216,128,216Z"></path></svg>`;
+                    btn.classList.replace('text-accent-500', 'text-slate-500');
+                    btn.classList.replace('dark:text-accent-400', 'dark:text-slate-400');
+                }
+            } catch (error) {
+                console.error('Like error:', error);
+                Toast.show("Network sync failed.", "error");
+            }
+        }
+
+        // --- 2. Nested Comment Drawer Engine ---
+
+        toggleComments(postId) {
+            const drawer = document.getElementById(`comments-${postId}`);
+            if(!drawer) return;
+
+            const isOpen = drawer.classList.contains('is-open');
+            
+            // Close all others first
+            document.querySelectorAll('.comment-section.is-open').forEach(el => {
+                if(el.id !== `comments-${postId}`) el.classList.remove('is-open');
+            });
+
+            if (isOpen) {
+                drawer.classList.remove('is-open');
+            } else {
+                drawer.classList.add('is-open');
+                setTimeout(() => {
+                    const input = document.getElementById(`comment-input-${postId}`);
+                    if(input) input.focus();
+                }, 300);
+            }
+        }
+
+        async submitComment(postId) {
+            const inputField = document.getElementById(`comment-input-${postId}`);
+            const content = inputField.value.trim();
+            if (!content) return;
+
+            inputField.disabled = true;
+            inputField.parentElement.style.opacity = '0.5';
+
+            const formData = new FormData();
+            formData.append('content', content);
+
+            try {
+                const response = await fetch(`/campus/post/${postId}/comment/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': this.csrfToken }
+                });
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    inputField.value = '';
+                    inputField.style.height = ''; // reset auto-grow
+                    
+                    const list = document.getElementById(`comment-list-${postId}`);
+                    const emptyMsg = document.getElementById(`empty-comment-${postId}`);
+                    if(emptyMsg) emptyMsg.remove();
+
+                    // Construct UI block
+                    const html = `
+                        <div class="flex gap-3 group/comment relative animate-slide-up">
+                            <div class="absolute top-10 left-4 bottom-[-16px] w-[2px] bg-slate-200 dark:bg-slate-700"></div>
+                            <div class="w-8 h-8 rounded-full bg-brand-500 flex-shrink-0 flex items-center justify-center text-white font-bold text-xs z-10 border-2 border-slate-50 dark:border-slate-900 shadow-sm">
+                                {{ request.user.username|make_list|first|upper }}
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-3.5 rounded-[18px] rounded-tl-sm shadow-sm">
+                                    <div class="flex justify-between items-baseline mb-1">
+                                        <span class="text-xs font-bold text-brand-700 dark:text-brand-300">You</span>
+                                        <span class="text-[10px] text-brand-500 font-bold">Just now</span>
+                                    </div>
+                                    <p class="text-[13px] text-slate-800 dark:text-slate-200 font-medium">${data.comment.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    list.insertAdjacentHTML('afterbegin', html);
+                    
+                    // Update counter
+                    const btn = document.querySelector(`article#post-${postId} .comment-count`);
+                    if(btn) btn.textContent = parseInt(btn.textContent) + 1;
+
+                    Toast.show("Reply sent", "success", 2000);
+                } else {
+                    Toast.show(data.error || "Failed to post", "error");
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show("Connection error", "error");
+            } finally {
+                inputField.disabled = false;
+                inputField.parentElement.style.opacity = '1';
+                inputField.focus();
+            }
+        }
+
+        // --- 3. Custom Media Handlers ---
+
+        toggleVideo(vidId, btnElement) {
+            const video = document.getElementById(vidId);
+            const playIcon = btnElement.querySelector('.play-icon');
+            const pauseIcon = btnElement.querySelector('.pause-icon');
+
+            if (video.paused) {
+                video.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                video.pause();
+                pauseIcon.classList.add('hidden');
+                playIcon.classList.remove('hidden');
+            }
+        }
+
+        openLightbox(imgSrc) {
+            this.lightboxImg.src = imgSrc;
+            this.lightbox.classList.remove('hidden');
+            this.lightbox.classList.add('flex');
+            void this.lightbox.offsetWidth; // Reflow
+            
+            this.lightbox.classList.remove('opacity-0');
+            this.lightboxImg.classList.remove('scale-95');
+            this.lightboxImg.classList.add('scale-100');
+            document.body.style.overflow = 'hidden';
+        }
+
+        closeLightbox() {
+            this.lightbox.classList.add('opacity-0');
+            this.lightboxImg.classList.remove('scale-100');
+            this.lightboxImg.classList.add('scale-95');
+            
+            setTimeout(() => {
+                this.lightbox.classList.remove('flex');
+                this.lightbox.classList.add('hidden');
+                this.lightboxImg.src = '';
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        // --- 4. Share API Engine ---
+
+        openShareModal(postId, username) {
+            // Construct absolute URL
+            this.currentShareLink = `${window.location.origin}/post/${postId}`;
+            document.getElementById('shareLinkInput').value = this.currentShareLink;
+
+            // Try native Web Share API first (Mobile)
+            if (navigator.share) {
+                navigator.share({
+                    title: `Post by ${username} on UIET Media`,
+                    text: 'Check out this post on the campus feed!',
+                    url: this.currentShareLink
+                }).catch(err => {
+                    if(err.name !== 'AbortError') console.error('Share failed:', err);
+                });
+                return; // Exit if native share works
+            }
+
+            // Fallback to custom Bottom Sheet UI
+            this.shareSheet.classList.remove('hidden');
+            this.shareSheet.classList.add('flex');
+            
+            setTimeout(() => {
+                this.shareOverlay.classList.remove('opacity-0');
+                this.shareSheet.querySelector('.share-sheet').classList.add('active');
+            }, 10);
+        }
+
+        closeShareModal() {
+            this.shareOverlay.classList.add('opacity-0');
+            this.shareSheet.querySelector('.share-sheet').classList.remove('active');
+            setTimeout(() => {
+                this.shareSheet.classList.add('hidden');
+                this.shareSheet.classList.remove('flex');
+            }, 400);
+        }
+
+        copyLink() {
+            navigator.clipboard.writeText(this.currentShareLink).then(() => {
+                Toast.show("Link copied to clipboard!", "success");
+                this.closeShareModal();
+            });
+        }
+
+        // --- 5. Internal Utilities ---
+
+        _initInfiniteScroll() {
+            // Setup IntersectionObserver to simulate lazy loading / infinite scroll UI
+            const trigger = document.getElementById('infinite-scroll-trigger');
+            if(!trigger) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                if(entries[0].isIntersecting) {
+                    const loader = document.getElementById('feed-loader-ui');
+                    loader.classList.remove('hidden');
+                    
+                    // Here you would normally make a fetch() call for page=2
+                    // Since it's a Django template, we simulate the loading state
+                    setTimeout(() => {
+                        loader.classList.add('hidden');
+                        Toast.show("You've caught up for now!", "info");
+                        observer.disconnect(); // Stop observing after first trigger
+                    }, 2000);
+                }
+            }, { threshold: 0.5 });
+
+            observer.observe(trigger);
+        }
+
+        _getCSRFToken() {
+            const match = document.cookie.match(new RegExp('(^| )csrftoken=([^;]+)'));
+            return match ? match[2] : null;
+        }
+    }
+
+    // Initialize the engine
+    const FeedEngine = new AdvancedFeedEngine();
+
+    // Close lightbox on escape
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape') FeedEngine.closeLightbox();
+    });
+
+</script>
+{% endblock %}

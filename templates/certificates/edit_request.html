@@ -1,0 +1,45 @@
+{% extends 'accounts/admin_dashboard.html' %}
+
+{% block content %}
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Edit Request Data</h2>
+            <p class="text-sm text-slate-500">Correcting details for: <span class="font-bold">{{ req.student.full_name }}</span></p>
+        </div>
+        <a href="{% url 'manage_requests' %}" class="text-slate-500 hover:text-slate-700 font-bold text-sm"><i class="fa-solid fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+        {% if req.correction_reason %}
+        <div class="mb-8 bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r">
+            <p class="text-xs font-bold text-orange-500 uppercase mb-1">Student's Correction Note</p>
+            <p class="text-slate-800 font-medium italic">"{{ req.correction_reason }}"</p>
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <h3 class="text-lg font-bold text-slate-700 mb-4 border-b pb-2">Certificate Data</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for key, value in req.request_data.items %}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">{{ key }}</label>
+                    <input type="text" name="{{ key }}" value="{{ value }}" 
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-slate-800">
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="mt-8 flex justify-end gap-4">
+                <a href="{% url 'manage_requests' %}" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-600 font-bold hover:bg-slate-50 transition-colors">Cancel</a>
+                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Correction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

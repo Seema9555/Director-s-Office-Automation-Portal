@@ -1,0 +1,12 @@
+{% extends 'certificates/includes/base_certificate.html' %}
+
+{% block certificate_content %}
+    <h2 style="text-decoration: underline; font-weight: bold; margin-top: 60px; margin-bottom: 40px;">
+        {{ certificate.request.template.name }}
+    </h2>
+    
+    <div style="text-align: justify; font-size: 18px; line-height: 1.8;">
+        {# The main text for this certificate will be rendered from the database #}
+        {{ certificate.request.template.body_template|safe }}
+    </div>
+{% endblock %}

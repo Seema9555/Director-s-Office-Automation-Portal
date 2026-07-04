@@ -1,0 +1,305 @@
+{% extends 'accounts/admin_dashboard.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="mt-4 px-2">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">Faculty Database</h2>
+            <p class="text-sm text-slate-500 mt-1">
+                Found <span class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ teachers|length }}</span> records. 
+                <span class="text-slate-400">Click any row to view full profile.</span>
+            </p>
+        </div>
+        
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="flex flex-col w-full md:w-96">
+                <div class="relative group">
+                    <input type="text" id="teacherSearch" onkeyup="filterTeachers()" 
+                           placeholder="Search (Name, ID, Dept...)" 
+                           class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 text-sm shadow-sm transition-all group-hover:border-slate-300">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1.5 ml-1 flex items-center gap-1">
+                    <i class="fa-solid fa-lightbulb text-yellow-500"></i>
+                    <span>Tip: Use space to filter (e.g., <b>Amit CSE</b>)</span>
+                </p>
+            </div>
+            
+            <a href="{% url 'add_teacher' %}" class="flex-shrink-0 bg-slate-900 hover:bg-indigo-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-slate-200 hover:shadow-indigo-200 transition-all flex items-center gap-2 transform hover:-translate-y-0.5 h-[46px]">
+                <i class="fa-solid fa-user-plus"></i> 
+                <span class="hidden sm:inline">Add Faculty</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100" id="teacherTable">
+                <thead>
+                    <tr class="bg-slate-50/80">
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-1/3">Faculty Identity</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Department</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Contact Info</th>
+                        <th class="px-6 py-4 text-right w-10"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50 bg-white">
+                    {% for teacher in teachers %}
+                    <tr class="hover:bg-indigo-50/60 cursor-pointer transition-all duration-200 group" 
+                        onclick="openTeacherModal(this)"
+                        
+                        {# --- Data Attributes for Modal & Search --- #}
+                        data-id="{{ teacher.id }}"
+                        data-name="{{ teacher.full_name }}"
+                        data-empid="{{ teacher.employee_id }}"
+                        data-dept="{{ teacher.department|default:'Not Assigned' }}"
+                        data-email="{{ teacher.email|default:'-' }}"
+                        data-phone="{{ teacher.phone|default:'-' }}"
+                        data-initial="{{ teacher.full_name|slice:':1' }}"
+                        
+                        {# Action URLs #}
+                        data-edit-url="{% url 'edit_teacher' teacher.id %}"
+                        data-delete-url="{% url 'delete_teacher' teacher.id %}">
+                        
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-11 w-11 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold text-lg shadow-md ring-4 ring-white group-hover:ring-indigo-100 transition-all">
+                                    {{ teacher.full_name|slice:":1" }}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{{ teacher.full_name }}</div>
+                                    <div class="text-xs text-slate-500 font-mono mt-0.5">
+                                        ID: {{ teacher.employee_id }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ teacher.department|default:"General" }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col justify-center">
+                                <div class="flex items-center mb-1.5">
+                                    <div class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] mr-2 flex-shrink-0">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </div>
+                                    <span class="text-sm text-slate-600 font-mono">{{ teacher.phone|default:"--" }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-6 h-6 rounded-md bg-white border border-slate-200 text-slate-400 flex items-center justify-center text-[10px] mr-2 flex-shrink-0">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </div>
+                                    <span class="text-xs text-slate-500">{{ teacher.email|default:"--" }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-sm group-hover:text-indigo-500 group-hover:translate-x-1 transition-all"></i>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                    <i class="fa-solid fa-chalkboard-user text-2xl text-slate-300"></i>
+                                </div>
+                                <h3 class="text-slate-900 font-medium">No faculty found</h3>
+                                <p class="text-slate-500 text-sm mt-1">Try adding a new teacher record.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# --- MODAL STRUCTURE (Identical to Student Modal but tailored content) --- #}
+<div id="teacherModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
+
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+            
+            <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl scale-95 opacity-0 border border-white/20" id="modalPanel">
+                
+                <button type="button" onclick="closeModal()" class="absolute top-4 right-4 z-20 text-white/80 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-colors backdrop-blur-md">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                {# --- Modal Header --- #}
+                <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 pt-10 pb-16 px-8 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row items-center md:items-end gap-6">
+                        <div class="h-20 w-20 rounded-2xl bg-white p-1 shadow-xl rotate-3">
+                            <div class="h-full w-full rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold" id="modalAvatar">
+                                A
+                            </div>
+                        </div>
+                        
+                        <div class="text-center md:text-left flex-1">
+                            <h3 class="text-2xl font-extrabold text-white tracking-tight leading-tight" id="modalName">Faculty Name</h3>
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2">
+                                <span class="px-3 py-1 rounded-lg bg-white/10 border border-white/20 text-indigo-100 text-sm font-mono backdrop-blur-md">
+                                    <i class="fa-regular fa-id-badge mr-2"></i><span id="modalEmpId">ID</span>
+                                </span>
+                                <span class="px-3 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-100 text-sm font-bold backdrop-blur-md">
+                                    <i class="fa-solid fa-building-columns mr-2"></i><span id="modalDept">Dept</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- Modal Body --- #}
+                <div class="px-8 py-8 -mt-8 relative z-10 bg-slate-50 rounded-t-3xl">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-address-card text-indigo-500"></i> Contact Information
+                        </h4>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Phone Number</p>
+                                    <a href="#" id="linkPhone" class="text-sm font-bold text-slate-800 hover:text-indigo-600">--</a>
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-slate-50"></div>
+
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center shadow-sm">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Email Address</p>
+                                    <a href="#" id="linkEmail" class="text-sm font-medium text-slate-800 hover:text-indigo-600">--</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- Modal Footer (Actions) --- #}
+                <div class="bg-white px-8 py-5 border-t border-slate-200 flex justify-between items-center rounded-b-3xl">
+                    <button type="button" onclick="closeModal()" class="text-slate-500 hover:text-slate-800 font-semibold text-sm transition-colors">
+                        Close
+                    </button>
+                    <div class="flex gap-3">
+                        <form id="deleteForm" method="POST" action="" onsubmit="return confirm('Are you sure you want to remove this faculty member?');">
+                            {% csrf_token %}
+                            <button type="submit" class="px-5 py-2.5 rounded-xl border border-red-100 text-red-600 bg-red-50 font-bold text-sm hover:bg-red-100 transition-colors">
+                                <i class="fa-solid fa-trash mr-2"></i> Remove
+                            </button>
+                        </form>
+                        
+                        <a href="#" id="modalEditBtn" class="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-indigo-600 shadow-lg shadow-slate-300 hover:shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-pen-to-square mr-2"></i> Edit
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. OPEN MODAL Logic ---
+    function openTeacherModal(row) {
+        const d = row.dataset;
+
+        // --- A. Fill Header Info ---
+        document.getElementById('modalAvatar').innerText = d.initial;
+        document.getElementById('modalName').innerText = d.name;
+        document.getElementById('modalEmpId').innerText = d.empid;
+        document.getElementById('modalDept').innerText = d.dept;
+
+        // --- B. Fill Contact Info & Dynamic Links ---
+        const phoneLink = document.getElementById('linkPhone');
+        phoneLink.innerText = d.phone;
+        phoneLink.href = d.phone !== '-' ? `tel:${d.phone}` : '#';
+
+        const emailLink = document.getElementById('linkEmail');
+        emailLink.innerText = d.email;
+        emailLink.href = d.email !== '-' ? `mailto:${d.email}` : '#';
+
+        // --- C. Update Action Buttons ---
+        document.getElementById('modalEditBtn').href = d.editUrl;
+        document.getElementById('deleteForm').action = d.deleteUrl;
+
+        // --- D. Animate Modal In ---
+        const modal = document.getElementById('teacherModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('scale-95', 'opacity-0');
+            panel.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    // --- 2. CLOSE MODAL Logic ---
+    function closeModal() {
+        const modal = document.getElementById('teacherModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('scale-100', 'opacity-100');
+        panel.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Backdrop Click Close
+    document.getElementById('teacherModal').addEventListener('click', function(e) {
+        if (e.target === document.getElementById('modalBackdrop') || e.target.closest('#modalBackdrop')) {
+            closeModal();
+        }
+    });
+
+    // --- 3. FILTER Logic (Client Side) ---
+    function filterTeachers() {
+        const input = document.getElementById("teacherSearch").value.toLowerCase().trim();
+        const searchTerms = input.split(" ").filter(term => term.length > 0);
+        const rows = document.getElementById("teacherTable").getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) { 
+            const row = rows[i];
+            const d = row.dataset;
+            if (!d || !d.name) continue;
+
+            const fullDataString = `
+                ${d.name} ${d.empid} ${d.dept} ${d.email} ${d.phone}
+            `.toLowerCase();
+
+            const isMatch = searchTerms.every(term => fullDataString.includes(term));
+            row.style.display = isMatch ? "" : "none";
+        }
+    }
+</script>
+
+{% endblock %}

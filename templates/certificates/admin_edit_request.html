@@ -1,0 +1,55 @@
+{% extends 'accounts/admin_dashboard.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+    
+    <a href="{% url 'manage_requests' %}" class="text-slate-500 hover:text-slate-800 text-sm flex items-center gap-2 mb-6 transition-colors">
+        <i class="fa-solid fa-arrow-left"></i> Back to Requests
+    </a>
+
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+        
+        <div class="bg-slate-50 px-8 py-6 border-b border-slate-100">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Edit Request Data</h2>
+                    <p class="text-sm text-slate-500 mt-1">Modify details for <span class="font-semibold text-indigo-600">{{ req.student.full_name }}</span></p>
+                </div>
+                <div class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold border border-orange-100 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Status: {{ req.get_status_display }}
+                </div>
+            </div>
+        </div>
+
+        {% if req.correction_reason %}
+        <div class="bg-orange-50/50 p-6 border-b border-orange-100">
+            <h4 class="text-xs font-bold text-orange-800 uppercase tracking-wide mb-2">Student's Complaint</h4>
+            <p class="text-sm text-slate-700 italic">"{{ req.correction_reason }}"</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" class="p-8 space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for key, value in req.request_data.items %}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                        {{ key|title|cut:"_" }} </label>
+                    <input type="text" name="{{ key }}" value="{{ value }}" 
+                           class="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-medium text-slate-800">
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-6 border-t border-slate-100 flex items-center justify-end gap-4">
+                <a href="{% url 'manage_requests' %}" class="px-6 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 font-bold transition-colors">Cancel</a>
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

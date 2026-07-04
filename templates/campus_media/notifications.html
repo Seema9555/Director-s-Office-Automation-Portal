@@ -1,0 +1,448 @@
+{% extends 'campus_media/base_media.html' %}
+
+{% block title %}Notifications | UIET Media{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       [1] NOTIFICATIONS MEGA CSS ENGINE
+       ========================================== */
+
+    /* MAIN LAYOUT WRAPPER */
+    .notif-layout {
+        background-color: #f8fafc;
+        min-height: calc(100vh - 4rem);
+        padding-bottom: 90px; /* Space for mobile bottom nav */
+    }
+    [data-theme="dark"] .notif-layout, .dark .notif-layout {
+        background-color: #0f172a;
+    }
+
+    @media (min-width: 768px) {
+        .notif-layout { padding-bottom: 40px; }
+    }
+
+    /* ==========================================
+       [2] HEADER & TABS
+       ========================================== */
+    .notif-header-container {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid #e2e8f0;
+        padding: 16px 20px 0;
+    }
+    [data-theme="dark"] .notif-header-container, .dark .notif-header-container {
+        background: rgba(15, 23, 42, 0.85);
+        border-bottom-color: #334155;
+    }
+
+    .notif-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 800px;
+        margin: 0 auto 16px;
+    }
+
+    .notif-tabs {
+        display: flex;
+        gap: 24px;
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .tab-btn {
+        padding: 12px 4px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #64748b;
+        cursor: pointer;
+        transition: color 0.2s;
+        border: none;
+        background: transparent;
+        position: relative;
+    }
+    .tab-btn:hover { color: #0f172a; }
+    [data-theme="dark"] .tab-btn:hover, .dark .tab-btn:hover { color: #f8fafc; }
+    
+    .tab-btn.active { color: #6366f1; }
+    .tab-btn.active::after {
+        content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+        height: 3px; background: #6366f1; border-radius: 3px 3px 0 0;
+    }
+
+    .mark-read-btn {
+        background: #f1f5f9; color: #4f46e5;
+        border: none; padding: 8px 16px; border-radius: 12px;
+        font-size: 0.85rem; font-weight: 700; cursor: pointer;
+        transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .mark-read-btn:hover { background: #e2e8f0; transform: translateY(-1px); }
+    [data-theme="dark"] .mark-read-btn, .dark .mark-read-btn {
+        background: rgba(79, 70, 229, 0.15); color: #818cf8;
+    }
+    [data-theme="dark"] .mark-read-btn:hover, .dark .mark-read-btn:hover {
+        background: rgba(79, 70, 229, 0.25);
+    }
+
+    /* ==========================================
+       [3] NOTIFICATION LIST & CARDS
+       ========================================== */
+    .notif-list {
+        max-width: 800px;
+        margin: 24px auto 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 0 16px;
+    }
+
+    .notif-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        background: #ffffff;
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    [data-theme="dark"] .notif-card, .dark .notif-card {
+        background: #1e293b; border-color: #334155; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .notif-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border-color: #e2e8f0;
+    }
+    [data-theme="dark"] .notif-card:hover, .dark .notif-card:hover {
+        border-color: #475569; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Unread State Indicator */
+    .notif-card.unread {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    [data-theme="dark"] .notif-card.unread, .dark .notif-card.unread {
+        background: rgba(30, 41, 59, 0.6); border-color: #475569;
+    }
+
+    .unread-indicator {
+        position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        opacity: 0; transition: opacity 0.3s;
+    }
+    .notif-card.unread .unread-indicator { opacity: 1; }
+
+    /* ==========================================
+       [4] AVATARS & OVERLAY BADGES
+       ========================================== */
+    .notif-avatar-wrapper {
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .notif-avatar {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: linear-gradient(135deg, #a78bfa, #4f46e5);
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; font-weight: bold; overflow: hidden;
+    }
+    .notif-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* The little icon on the bottom right of avatar */
+    .notif-badge {
+        position: absolute; bottom: -2px; right: -2px;
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid #ffffff; color: white;
+    }
+    [data-theme="dark"] .notif-badge, .dark .notif-badge { border-color: #1e293b; }
+
+    .badge-like { background: #ec4899; }
+    .badge-comment { background: #3b82f6; }
+    .badge-mention { background: #8b5cf6; }
+    .badge-system { background: #f59e0b; }
+    .badge-moderation { background: #ef4444; }
+
+    /* ==========================================
+       [5] TEXT CONTENT
+       ========================================== */
+    .notif-content {
+        flex-grow: 1; padding-right: 24px; /* Space for unread dot */
+    }
+
+    .notif-text {
+        font-size: 0.95rem; color: #475569; line-height: 1.4;
+    }
+    [data-theme="dark"] .notif-text, .dark .notif-text { color: #94a3b8; }
+    
+    .notif-card.unread .notif-text { color: #0f172a; font-weight: 600; }
+    [data-theme="dark"] .notif-card.unread .notif-text, .dark .notif-card.unread .notif-text { color: #f8fafc; }
+
+    .notif-author { font-weight: 800; color: #0f172a; }
+    [data-theme="dark"] .notif-author, .dark .notif-author { color: #ffffff; }
+
+    .notif-time {
+        font-size: 0.8rem; font-weight: 600; color: #94a3b8;
+        margin-top: 6px; display: flex; align-items: center; gap: 4px;
+    }
+
+    /* Animation */
+    .notif-anim {
+        opacity: 0; transform: translateY(15px);
+        animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideUpFade {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="notif-layout animate-fade-in">
+
+    <div class="notif-header-container">
+        <div class="notif-title-row">
+            <h1 class="text-3xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                Notifications 
+                <span id="unreadCounter" class="bg-brand-500 text-white text-sm px-3 py-1 rounded-full font-bold shadow-md hidden">0</span>
+            </h1>
+            
+            <form method="POST" action="{% url 'notifications' %}" id="markAllReadForm" onsubmit="NotificationEngine.markAllAsRead(event)">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="mark_all_read">
+                <button type="submit" class="mark-read-btn">
+                    <i class="ph-bold ph-check-double text-lg"></i> Mark all read
+                </button>
+            </form>
+        </div>
+
+        <div class="notif-tabs">
+            <button class="tab-btn active" onclick="NotificationEngine.filter('all', this)">All</button>
+            <button class="tab-btn" onclick="NotificationEngine.filter('unread', this)">Unread</button>
+        </div>
+    </div>
+
+    <div class="notif-list" id="notifContainer">
+        
+        {% for notification in notifications %}
+            
+            <a href="{% if notification.post %}{% url 'campus_feed' %}#post-{{ notification.post.id }}{% else %}#{% endif %}" 
+               class="notif-card {% if not notification.is_read %}unread{% endif %} notif-anim" 
+               data-status="{% if notification.is_read %}read{% else %}unread{% endif %}"
+               style="animation-delay: {{ forloop.counter0|add:1 }}00ms;"
+               onclick="NotificationEngine.markSingleRead(this)">
+                
+                <div class="notif-avatar-wrapper">
+                    <div class="notif-avatar">
+                        {% if notification.sender and notification.sender.profile_pic %}
+                            <img src="{{ notification.sender.profile_pic.url }}">
+                        {% elif notification.sender %}
+                            {{ notification.sender.username|make_list|first|upper }}
+                        {% else %}
+                            <i class="ph-fill ph-bell-ringing"></i>
+                        {% endif %}
+                    </div>
+                    
+                    {% if notification.notification_type == 'like' %}
+                        <div class="notif-badge badge-like"><i class="ph-fill ph-heart text-[12px]"></i></div>
+                    {% elif notification.notification_type == 'comment' %}
+                        <div class="notif-badge badge-comment"><i class="ph-fill ph-chat-circle text-[12px]"></i></div>
+                    {% elif notification.notification_type == 'mention' %}
+                        <div class="notif-badge badge-mention"><i class="ph-bold ph-at text-[12px]"></i></div>
+                    {% elif notification.notification_type == 'moderation' %}
+                        <div class="notif-badge badge-moderation"><i class="ph-fill ph-shield-warning text-[12px]"></i></div>
+                    {% else %}
+                        <div class="notif-badge badge-system"><i class="ph-fill ph-info text-[12px]"></i></div>
+                    {% endif %}
+                </div>
+
+                <div class="notif-content">
+                    <div class="notif-text">
+                        {% if notification.sender %}
+                            <span class="notif-author">{{ notification.sender.first_name|default:notification.sender.username }}</span>
+                        {% endif %}
+                        {{ notification.text|default:"interacted with your post." }}
+                    </div>
+                    
+                    <div class="notif-time">
+                        {{ notification.created_at|timesince }} ago
+                    </div>
+                </div>
+
+                <div class="unread-indicator"></div>
+            </a>
+            
+        {% empty %}
+            <div class="flex flex-col items-center justify-center text-center py-20 animate-fade-in" id="emptyStateBox">
+                <div class="relative w-32 h-32 mb-6">
+                    <div class="absolute inset-0 bg-brand-500/10 dark:bg-brand-500/20 rounded-full blur-2xl animate-pulse"></div>
+                    <div class="relative w-full h-full bg-white dark:bg-slate-800 rounded-full border border-slate-100 dark:border-slate-700 shadow-xl flex items-center justify-center text-brand-500">
+                        <i class="ph-fill ph-bell-z text-5xl"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-display font-extrabold text-slate-900 dark:text-white mb-2">All Caught Up!</h3>
+                <p class="text-slate-500 dark:text-slate-400 font-medium max-w-sm">
+                    You have no new notifications right now. When campus buzzing happens, we'll let you know here.
+                </p>
+            </div>
+        {% endfor %}
+        
+        <div class="flex flex-col items-center justify-center text-center py-16 hidden" id="filterEmptyState">
+            <i class="ph-fill ph-check-circle text-5xl text-emerald-400 mb-4"></i>
+            <h3 class="text-lg font-bold text-slate-800 dark:text-white">No unread notifications</h3>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * =========================================================
+     * [6] NOTIFICATIONS JAVASCRIPT ENGINE
+     * Handles DOM Filtering, Unread Counters, and Mark Read AJAX
+     * =========================================================
+     */
+    class NotificationUIEngine {
+        constructor() {
+            this.container = document.getElementById('notifContainer');
+            this.cards = document.querySelectorAll('.notif-card');
+            this.counterBadge = document.getElementById('unreadCounter');
+            this.filterEmptyState = document.getElementById('filterEmptyState');
+            this.emptyStateBox = document.getElementById('emptyStateBox');
+            
+            this.updateCounter();
+        }
+
+        // --- Counter Logic ---
+        updateCounter() {
+            if(!this.cards || this.cards.length === 0) return;
+            
+            let unreadCount = 0;
+            this.cards.forEach(card => {
+                if (card.getAttribute('data-status') === 'unread') {
+                    unreadCount++;
+                }
+            });
+
+            if (unreadCount > 0) {
+                this.counterBadge.textContent = unreadCount;
+                this.counterBadge.classList.remove('hidden');
+            } else {
+                this.counterBadge.classList.add('hidden');
+            }
+        }
+
+        // --- Visual Mark Single Read ---
+        markSingleRead(cardElement) {
+            if (cardElement.getAttribute('data-status') === 'unread') {
+                // Change UI instantly
+                cardElement.setAttribute('data-status', 'read');
+                cardElement.classList.remove('unread');
+                this.updateCounter();
+                
+                // Optional: If you want to silently tell backend it's read
+                // fetch('/social/notification/read/' + cardElement.dataset.id, { method: 'POST' ... })
+            }
+        }
+
+        // --- AJAX Form Mark All Read ---
+        async markAllAsRead(event) {
+            event.preventDefault(); // Stop page reload
+            const form = event.target;
+            const btn = form.querySelector('button');
+            const originalHTML = btn.innerHTML;
+            
+            // Spin animation
+            btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin text-lg"></i> Processing...`;
+            btn.disabled = true;
+
+            try {
+                // Hitting the standard backend logic
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (response.ok) {
+                    // Visually mark everything as read
+                    this.cards.forEach(card => {
+                        card.setAttribute('data-status', 'read');
+                        card.classList.remove('unread');
+                    });
+                    this.updateCounter();
+                    
+                    // If currently on "Unread" tab, refresh the filter
+                    const activeTab = document.querySelector('.tab-btn.active');
+                    if (activeTab && activeTab.textContent === 'Unread') {
+                        this.filter('unread', activeTab);
+                    }
+                    
+                    Toast.show("All notifications marked as read.", "success");
+                } else {
+                    throw new Error("Server error");
+                }
+            } catch (error) {
+                console.error("Mark all read failed:", error);
+                Toast.show("Error connecting to server.", "error");
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // --- Frontend DOM Filtering (No Backend Required) ---
+        filter(type, btnElement) {
+            // Update Active Tab UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            let visibleCount = 0;
+
+            this.cards.forEach(card => {
+                if (type === 'all') {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else if (type === 'unread') {
+                    if (card.getAttribute('data-status') === 'unread') {
+                        card.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+
+            // Handle Empty States
+            if (this.cards.length > 0) {
+                if (visibleCount === 0 && type === 'unread') {
+                    this.filterEmptyState.classList.remove('hidden');
+                } else {
+                    this.filterEmptyState.classList.add('hidden');
+                }
+            }
+        }
+    }
+
+    const NotificationEngine = new NotificationUIEngine();
+</script>
+{% endblock %}

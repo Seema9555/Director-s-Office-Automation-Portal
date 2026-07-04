@@ -1,0 +1,564 @@
+{% extends 'campus_media/base_media.html' %}
+
+{% block title %}Messages | UIET Media{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       [1] CHAT HUB MEGA CSS ENGINE
+       ========================================== */
+
+    /* Split Pane Height Calculation */
+    .chat-layout-height {
+        height: calc(100vh - 4rem); /* Mobile */
+    }
+    @media (min-width: 768px) {
+        .chat-layout-height {
+            height: calc(100vh - 6rem); /* Desktop with Nav */
+        }
+    }
+
+    /* Swipe to Reveal Logic */
+    .swipe-container {
+        position: relative;
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+    .swipe-actions {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        display: flex;
+        z-index: 1;
+    }
+    .swipe-front {
+        position: relative;
+        z-index: 2;
+        background: inherit;
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: transform;
+    }
+
+    /* Custom Scrollbar for Chat Lists */
+    .chat-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+    .chat-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .chat-scroll::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.4);
+        border-radius: 10px;
+    }
+    .chat-scroll:hover::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.7);
+    }
+    .dark .chat-scroll::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.4);
+    }
+    .dark .chat-scroll:hover::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.8);
+    }
+
+    /* Animated Tabs */
+    .tab-btn {
+        position: relative;
+        color: #64748b;
+        transition: color 0.3s;
+    }
+    .tab-btn.active {
+        color: #8b5cf6;
+        font-weight: 700;
+    }
+    .dark .tab-btn.active {
+        color: #a78bfa;
+    }
+    .tab-indicator {
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        height: 3px;
+        background-color: #8b5cf6;
+        border-radius: 3px 3px 0 0;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, width;
+    }
+
+    /* Staggered List Animation */
+    @keyframes slideInUpChat {
+        from { opacity: 0; transform: translateY(15px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .chat-item-anim {
+        opacity: 0;
+        animation: slideInUpChat 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Compact View overrides via JS */
+    body.chat-compact .swipe-front {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+    }
+    body.chat-compact .avatar-size {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    body.chat-compact .text-truncate-2 {
+        -webkit-line-clamp: 1 !important;
+    }
+
+    /* 3D Security Graphic Elements */
+    @keyframes floatGraphic {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-10px) rotate(2deg); }
+    }
+    .graphic-float { animation: floatGraphic 6s ease-in-out infinite; }
+</style>
+{% endblock %}
+
+{% block page_header %}
+<svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <symbol id="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+        </symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </symbol>
+        <symbol id="icon-lock-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><rect x="9" y="11" width="6" height="6" rx="1"/><path d="M12 11V9a2 2 0 1 0-4 0"/>
+        </symbol>
+        <symbol id="icon-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+        </symbol>
+        <symbol id="icon-check-double" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 6 7 17 2 12"/><polyline points="22 10 11 21 8 18"/>
+        </symbol>
+    </defs>
+</svg>
+{% endblock %}
+
+{% block content %}
+<div class="chat-layout-height w-full bg-white dark:bg-slate-800 rounded-[24px] md:rounded-[32px] shadow-card border border-slate-100 dark:border-slate-700 flex overflow-hidden animate-slide-up relative">
+
+    <div class="w-full md:w-[380px] lg:w-[420px] flex-shrink-0 flex flex-col bg-slate-50/50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-10 relative">
+        
+        <div class="px-5 pt-6 pb-4 bg-white dark:bg-slate-800 z-20">
+            <div class="flex justify-between items-center mb-5">
+                <h1 class="text-2xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight">Messages</h1>
+                <div class="flex gap-2">
+                    <button onclick="HubEngine.toggleSettings()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors btn-press">
+                        <svg class="w-5 h-5"><use href="#icon-settings"></use></svg>
+                    </button>
+                    <button onclick="HubEngine.switchTab('directory')" class="w-10 h-10 rounded-full bg-brand-500 hover:bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/30 transition-colors btn-press">
+                        <svg class="w-5 h-5"><use href="#icon-edit"></use></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-slate-400 group-focus-within:text-brand-500 transition-colors"><use href="#icon-search"></use></svg>
+                </div>
+                <input type="text" id="chatSearchInput" onkeyup="HubEngine.filterList()" placeholder="Search people or messages..." class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent text-slate-900 dark:text-white rounded-[16px] py-3.5 pl-12 pr-4 text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all outline-none shadow-sm">
+            </div>
+
+            <div class="flex items-center gap-6 mt-6 relative border-b border-slate-200 dark:border-slate-700">
+                <button onclick="HubEngine.switchTab('recent')" id="tab-recent" class="tab-btn active pb-3 text-sm font-bold tracking-wide outline-none">Recent Chats</button>
+                <button onclick="HubEngine.switchTab('directory')" id="tab-directory" class="tab-btn pb-3 text-sm font-bold tracking-wide outline-none">Campus Directory</button>
+                <div id="tab-indicator" class="tab-indicator"></div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto chat-scroll relative bg-white dark:bg-slate-800">
+            
+            <div id="pane-recent" class="flex flex-col opacity-100 transition-opacity duration-300">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                    <div class="swipe-container group chat-list-item" data-name="{{ user.first_name }} {{ user.last_name }} {{ user.username }}">
+                        
+                        <form method="POST" action="{% url 'toggle_mute' user.id %}" class="swipe-actions bg-red-500 w-24 flex items-center justify-end pr-5">
+                            {% csrf_token %}
+                            <button type="submit" class="flex flex-col items-center gap-1 text-white btn-press">
+                                <svg class="w-6 h-6"><use href="#icon-mute"></use></svg>
+                                <span class="text-[10px] font-bold">Mute</span>
+                            </button>
+                        </form>
+                        
+                        <a href="{% url 'chat_room' user.id %}" class="swipe-front block bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 px-5 py-4 cursor-pointer border-b border-slate-100 dark:border-slate-700/50 outline-none">
+                            <div class="flex items-center gap-4">
+                                <div class="relative flex-shrink-0 avatar-size w-14 h-14 transition-all duration-300">
+                                    <div class="w-full h-full rounded-full p-[2px] {% if user.is_superuser %}bg-gradient-to-tr from-amber-400 to-orange-500{% else %}bg-slate-200 dark:bg-slate-600{% endif %}">
+                                        <div class="w-full h-full bg-white dark:bg-slate-900 rounded-full overflow-hidden flex items-center justify-center font-bold text-lg text-slate-700 dark:text-slate-200">
+                                            {% if user.profile_pic %}
+                                                <img src="{{ user.profile_pic.url }}" class="w-full h-full object-cover">
+                                            {% else %}
+                                                {{ user.username|make_list|first|upper }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-800 rounded-full shadow-sm"></div>
+                                </div>
+                                
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-baseline mb-0.5">
+                                        <h3 class="text-[15px] font-bold text-slate-900 dark:text-white truncate">
+                                            {{ user.first_name|default:user.username }}
+                                            {% if user.is_superuser %}
+                                                <svg class="w-3.5 h-3.5 text-amber-500 inline-block ml-1" fill="currentColor" viewBox="0 0 256 256"><path d="M226.53,114.6l-26-25.11a15.93,15.93,0,0,1-4.71-14.47l6.14-35.6a16,16,0,0,0-23.22-16.88l-31.9,16.76a16,16,0,0,1-15.2,0L100.41,22.54a16,16,0,0,0-23.22,16.88l6.14,35.6a15.93,15.93,0,0,1-4.71,14.47l-26,25.11a16,16,0,0,0,8.85,27.27l35.84,5.21a16.14,16.14,0,0,1,12.06,8.76l16.05,32.5a16,16,0,0,0,28.66,0l16.05-32.5a16.14,16.14,0,0,1,12.06-8.76l35.84-5.21a16,16,0,0,0,8.85-27.27ZM116,152a8,8,0,0,1-8,8H88a8,8,0,0,1-8-8V104a8,8,0,0,1,16,0v40h12A8,8,0,0,1,116,152Z"></path></svg>
+                                            {% endif %}
+                                        </h3>
+                                        <span class="text-[11px] font-semibold text-slate-400 whitespace-nowrap ml-2">
+                                            {{ user.latest_message.timestamp|timesince|truncatewords:2 }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center gap-2">
+                                        <p class="text-sm text-slate-500 dark:text-slate-400 truncate text-truncate-2">
+                                            {% if user.latest_message.sender == request.user %}
+                                                <span class="text-brand-500 font-medium">You:</span>
+                                            {% endif %}
+                                            {{ user.latest_message.content|default:"Sent an attachment" }}
+                                        </p>
+                                        {% if user.latest_message.sender == request.user %}
+                                            <svg class="w-4 h-4 text-brand-500 flex-shrink-0"><use href="#icon-check-double"></use></svg>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+                        <div class="w-32 h-32 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mb-6 shadow-inner border border-slate-100 dark:border-slate-700">
+                            <svg class="w-16 h-16 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">No active chats</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">You haven't messaged anyone yet. Start a conversation from the directory.</p>
+                        <button onclick="HubEngine.switchTab('directory')" class="px-6 py-2.5 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 font-bold text-sm border border-brand-200 dark:border-brand-800 hover:bg-brand-100 transition-colors btn-press">
+                            Browse Directory
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div id="pane-directory" class="hidden flex-col opacity-0 transition-opacity duration-300 pb-10">
+                <div class="px-5 py-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-10">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">All Members ({{ users.count }})</p>
+                </div>
+                
+                {% for u in users %}
+                <a href="{% url 'chat_room' u.id %}" class="chat-list-item block px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors border-b border-slate-50 dark:border-slate-800/50" data-name="{{ u.first_name }} {{ u.last_name }} {{ u.username }}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-lg shadow-inner">
+                            {% if u.profile_pic %}
+                                <img src="{{ u.profile_pic.url }}" class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                {{ u.username|make_list|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-[15px] font-bold text-slate-800 dark:text-slate-200">{{ u.first_name|default:u.username }}</h4>
+                            <p class="text-xs font-medium text-slate-500">@{{ u.username }}</p>
+                        </div>
+                        {% if u.is_superuser %}
+                        <span class="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold rounded-md">Admin</span>
+                        {% else %}
+                        <svg class="w-5 h-5 text-slate-300 dark:text-slate-600"><use href="#icon-chat"></use></svg>
+                        {% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            
+            <div id="emptySearchState" class="hidden flex-col items-center justify-center py-16 text-center">
+                <svg class="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                <h4 class="text-sm font-bold text-slate-700 dark:text-slate-300">No results found</h4>
+                <p class="text-xs text-slate-500">Try searching a different name.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="hidden md:flex flex-1 flex-col items-center justify-center bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
+        
+        <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style="background-image: radial-gradient(#8b5cf6 1px, transparent 1px); background-size: 24px 24px;"></div>
+        
+        <div class="relative z-10 flex flex-col items-center text-center px-8 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="w-48 h-48 mb-8 relative graphic-float">
+                <div class="absolute inset-0 bg-brand-500/10 rounded-full blur-2xl"></div>
+                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-2xl">
+                    <circle cx="100" cy="100" r="80" fill="url(#grad1)" fill-opacity="0.1"/>
+                    <rect x="40" y="60" width="120" height="80" rx="16" fill="url(#grad2)" stroke="url(#grad3)" stroke-width="4"/>
+                    <path d="M40 76L94.34 112.23C97.77 114.51 102.23 114.51 105.66 112.23L160 76" stroke="url(#grad3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="100" cy="140" r="24" fill="#8B5CF6" stroke="#ffffff" stroke-width="6"/>
+                    <path d="M92 140l5 5 11-11" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs>
+                        <linearGradient id="grad1" x1="20" y1="20" x2="180" y2="180"><stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#EC4899"/></linearGradient>
+                        <linearGradient id="grad2" x1="40" y1="60" x2="160" y2="140"><stop stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#f8fafc" stop-opacity="0.7"/></linearGradient>
+                        <linearGradient id="grad3" x1="40" y1="60" x2="160" y2="140"><stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#6D28D9"/></linearGradient>
+                    </defs>
+                </svg>
+            </div>
+
+            <h2 class="text-3xl font-display font-extrabold text-slate-900 dark:text-white tracking-tight mb-3">UIET Direct Messages</h2>
+            <p class="text-slate-500 dark:text-slate-400 max-w-sm mb-8 text-[1.05rem] leading-relaxed">Select a conversation from the left menu or browse the campus directory to start a new chat.</p>
+            
+            <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800">
+                <svg class="w-4 h-4"><use href="#icon-lock-shield"></use></svg> Fully Private & Secure
+            </div>
+        </div>
+
+    </div>
+
+    <div id="hubSettingsModal" class="fixed inset-0 z-[1000] hidden items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/70 backdrop-blur-sm" onclick="HubEngine.toggleSettings()"></div>
+        <div class="relative w-[90%] max-w-sm bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-6 transform scale-95 transition-transform duration-300 border border-slate-100 dark:border-slate-700" id="hubSettingsContent">
+            <h3 class="font-display font-bold text-lg text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+                <svg class="w-5 h-5 text-brand-500"><use href="#icon-settings"></use></svg> Chat Preferences
+            </h3>
+            
+            <div class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700 group">
+                <div>
+                    <p class="font-bold text-sm text-slate-800 dark:text-slate-200">Compact View</p>
+                    <p class="text-[11px] text-slate-500">Show more chats on screen.</p>
+                </div>
+                <label class="relative inline-block w-12 h-6 cursor-pointer">
+                    <input type="checkbox" id="compactToggle" class="sr-only peer" onchange="HubEngine.saveSettings()">
+                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+                </label>
+            </div>
+            
+            <button onclick="HubEngine.toggleSettings()" class="mt-6 w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold rounded-xl transition-colors btn-press">
+                Done
+            </button>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * =========================================================
+     * [3] MEGA HUB JAVASCRIPT ENGINE
+     * Handles Tab Switching, Live Search, Swipe-to-Reveal, Settings
+     * =========================================================
+     */
+    class ChatHubEngine {
+        constructor() {
+            // DOM Elements
+            this.tabRecent = document.getElementById('tab-recent');
+            this.tabDirectory = document.getElementById('tab-directory');
+            this.indicator = document.getElementById('tab-indicator');
+            
+            this.paneRecent = document.getElementById('pane-recent');
+            this.paneDirectory = document.getElementById('pane-directory');
+            
+            this.searchInput = document.getElementById('chatSearchInput');
+            this.emptyState = document.getElementById('emptySearchState');
+            
+            this.settingsModal = document.getElementById('hubSettingsModal');
+            this.settingsContent = document.getElementById('hubSettingsContent');
+            this.compactToggle = document.getElementById('compactToggle');
+
+            // Initialization
+            this._initTabs();
+            this._initSwipeActions();
+            this._loadSettings();
+            
+            // Staggered Animation for load
+            this._triggerLoadAnimation();
+        }
+
+        // --- 1. Tab Management ---
+        
+        _initTabs() {
+            // Set initial indicator width based on active tab
+            this._updateIndicator(this.tabRecent);
+        }
+
+        _updateIndicator(activeTabElement) {
+            const width = activeTabElement.offsetWidth;
+            const left = activeTabElement.offsetLeft;
+            this.indicator.style.width = `${width}px`;
+            this.indicator.style.transform = `translateX(${left}px)`;
+        }
+
+        switchTab(tabName) {
+            this.searchInput.value = ''; // Clear search on switch
+            this.filterList(); // Reset view
+            
+            if (tabName === 'recent') {
+                this.tabRecent.classList.add('active');
+                this.tabDirectory.classList.remove('active');
+                this._updateIndicator(this.tabRecent);
+                
+                this.paneDirectory.classList.replace('flex', 'hidden');
+                this.paneDirectory.style.opacity = '0';
+                
+                this.paneRecent.classList.replace('hidden', 'flex');
+                setTimeout(() => this.paneRecent.style.opacity = '1', 50);
+
+            } else {
+                this.tabDirectory.classList.add('active');
+                this.tabRecent.classList.remove('active');
+                this._updateIndicator(this.tabDirectory);
+                
+                this.paneRecent.classList.replace('flex', 'hidden');
+                this.paneRecent.style.opacity = '0';
+                
+                this.paneDirectory.classList.replace('hidden', 'flex');
+                setTimeout(() => this.paneDirectory.style.opacity = '1', 50);
+            }
+        }
+
+        // --- 2. Live DOM Filtering ---
+
+        filterList() {
+            const query = this.searchInput.value.toLowerCase().trim();
+            const activePane = this.tabRecent.classList.contains('active') ? this.paneRecent : this.paneDirectory;
+            const items = activePane.querySelectorAll('.chat-list-item');
+            
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                // Read from data-name attribute we injected in HTML
+                const searchableText = item.getAttribute('data-name').toLowerCase();
+                
+                if (searchableText.includes(query)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Show empty state if nothing found, hide main content (except empty state itself)
+            if (visibleCount === 0 && query !== '') {
+                this.emptyState.classList.replace('hidden', 'flex');
+            } else {
+                this.emptyState.classList.replace('flex', 'hidden');
+            }
+        }
+
+        // --- 3. Swipe To Reveal Logic (Mobile UX) ---
+
+        _initSwipeActions() {
+            const swipeContainers = document.querySelectorAll('.swipe-container');
+            
+            swipeContainers.forEach(container => {
+                const front = container.querySelector('.swipe-front');
+                if (!front) return;
+
+                let startX = 0;
+                let currentX = 0;
+                const threshold = -80; // How far left to swipe (px)
+                let isSwiped = false;
+
+                // Touch Events
+                front.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    front.style.transition = 'none'; // remove smooth transition during drag
+                }, {passive: true});
+
+                front.addEventListener('touchmove', (e) => {
+                    currentX = e.touches[0].clientX;
+                    let diff = currentX - startX;
+                    
+                    // Only allow sliding left
+                    if (diff < 0 && diff > threshold - 20) {
+                        front.style.transform = `translateX(${diff}px)`;
+                    }
+                }, {passive: true});
+
+                front.addEventListener('touchend', (e) => {
+                    front.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    let diff = currentX - startX;
+                    
+                    if (diff < (threshold / 2)) {
+                        // Snap open
+                        front.style.transform = `translateX(${threshold}px)`;
+                        isSwiped = true;
+                    } else {
+                        // Snap shut
+                        front.style.transform = `translateX(0)`;
+                        isSwiped = false;
+                    }
+                });
+
+                // Close swipe if tapped outside
+                document.addEventListener('touchstart', (e) => {
+                    if (isSwiped && !container.contains(e.target)) {
+                        front.style.transform = `translateX(0)`;
+                        isSwiped = false;
+                    }
+                }, {passive: true});
+            });
+        }
+
+        // --- 4. User Settings (Local Storage) ---
+
+        _loadSettings() {
+            const isCompact = localStorage.getItem('uiet_chat_compact') === 'true';
+            this.compactToggle.checked = isCompact;
+            this._applySettings(isCompact);
+        }
+
+        saveSettings() {
+            const isCompact = this.compactToggle.checked;
+            localStorage.setItem('uiet_chat_compact', isCompact);
+            this._applySettings(isCompact);
+            Toast.show("Preferences saved", "success", 2000);
+        }
+
+        _applySettings(isCompact) {
+            if(isCompact) {
+                document.body.classList.add('chat-compact');
+            } else {
+                document.body.classList.remove('chat-compact');
+            }
+        }
+
+        toggleSettings() {
+            const isHidden = this.settingsModal.classList.contains('hidden');
+            
+            if(isHidden) {
+                this.settingsModal.classList.replace('hidden', 'flex');
+                void this.settingsModal.offsetWidth; // Reflow
+                this.settingsModal.classList.replace('opacity-0', 'opacity-100');
+                this.settingsContent.classList.replace('scale-95', 'scale-100');
+            } else {
+                this.settingsModal.classList.replace('opacity-100', 'opacity-0');
+                this.settingsContent.classList.replace('scale-100', 'scale-95');
+                setTimeout(() => {
+                    this.settingsModal.classList.replace('flex', 'hidden');
+                }, 300);
+            }
+        }
+
+        // --- 5. Initial Animation ---
+        
+        _triggerLoadAnimation() {
+            const items = document.querySelectorAll('.chat-list-item');
+            items.forEach((item, index) => {
+                // Add staggered delay to each item
+                item.classList.add('chat-item-anim');
+                item.style.animationDelay = `${(index * 50) + 100}ms`;
+            });
+        }
+    }
+
+    // Initialize globally
+    const HubEngine = new ChatHubEngine();
+
+    // Handle Window Resize for Tab Indicator
+    window.addEventListener('resize', () => {
+        const activeTab = document.querySelector('.tab-btn.active');
+        if(activeTab) HubEngine._updateIndicator(activeTab);
+    });
+
+</script>
+{% endblock %}

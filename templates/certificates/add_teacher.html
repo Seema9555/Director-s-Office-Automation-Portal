@@ -1,0 +1,136 @@
+{% extends 'accounts/admin_dashboard.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto mt-6 animate-fade-in-up mb-10">
+    
+    <div class="flex items-center gap-2 text-sm text-slate-500 mb-6 pl-1">
+        <a href="{% url 'admin_dashboard' %}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+        <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
+        <a href="{% url 'manage_teachers' %}" class="hover:text-blue-600 transition-colors">Manage Faculty</a>
+        <i class="fa-solid fa-chevron-right text-[10px] opacity-50"></i>
+        <span class="text-slate-800 font-semibold">Add New</span>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
+        
+        <div class="bg-slate-50/50 px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <span class="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </span>
+                    Add New Faculty Member
+                </h2>
+                <p class="text-sm text-slate-500 mt-1 ml-14">Enter details to register a new teacher in the system.</p>
+            </div>
+        </div>
+
+        <form action="{% url 'add_teacher' %}" method="POST" class="p-8">
+            {% csrf_token %}
+
+            {% if messages %}
+                <div class="mb-8 space-y-2">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-xl text-sm font-medium border-l-4 flex items-center gap-3 shadow-sm
+                            {% if message.tags == 'error' %} bg-red-50 text-red-700 border-red-500 
+                            {% else %} bg-emerald-50 text-emerald-700 border-emerald-500 {% endif %}">
+                            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                
+                {# LEFT COL: Identity #}
+                <div>
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-100 mb-5">
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">
+                            <i class="fa-regular fa-id-card mr-1"></i> Identity Details
+                        </span>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                            <input type="text" name="full_name" required class="form-input" placeholder="e.g. Dr. Anjali Sharma">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Employee ID</label>
+                            <input type="text" name="employee_id" required class="form-input bg-indigo-50/50 border-indigo-200 focus:border-indigo-500" placeholder="e.g. FAC001">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Department</label>
+                            <select name="department" class="form-select">
+                                <option value="CSE">Computer Science (CSE)</option>
+                                <option value="IT">Information Technology (IT)</option>
+                                <option value="ECE">Electronics (ECE)</option>
+                                <option value="ME">Mechanical (ME)</option>
+                                <option value="CHE">Chemical (CHE)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {# RIGHT COL: Contact #}
+                <div>
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-100 mb-5">
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">
+                            <i class="fa-solid fa-address-book mr-1"></i> Contact Information
+                        </span>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
+                            <input type="email" name="email" class="form-input" placeholder="faculty@uiet.ac.in">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Phone Number</label>
+                            <input type="text" name="phone" class="form-input" placeholder="9876543210">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-10 pt-6 border-t border-slate-100 flex items-center justify-end gap-4">
+                <a href="{% url 'manage_teachers' %}" class="px-6 py-3 rounded-xl text-slate-600 font-semibold hover:bg-slate-100 hover:text-slate-800 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-8 py-3 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 hover:shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> Save Faculty
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-input, .form-select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+    .form-input:focus, .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        background-color: #ffffff;
+    }
+    .animate-fade-in-up {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}

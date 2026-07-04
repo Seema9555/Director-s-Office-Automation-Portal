@@ -1,0 +1,410 @@
+{% extends 'campus_media/base_media.html' %}
+{% load static %}
+
+{% block title %}Moderation Command Center | UIET Media{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       [1] MODERATION DASHBOARD MEGA CSS
+       ========================================== */
+
+    .mod-layout {
+        min-height: calc(100vh - 4rem);
+        padding-bottom: 80px;
+        position: relative;
+        
+        /* 🟢 ADDED BACKGROUND IMAGE HERE */
+        background-image: url('{% static "pictures/moderation.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    /* Overlay to ensure cards and text remain highly readable */
+    .mod-layout::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-color: rgba(248, 250, 252, 0.85); /* Light mode glass overlay */
+        z-index: 0;
+        pointer-events: none;
+    }
+    [data-theme="dark"] .mod-layout::before, .dark .mod-layout::before {
+        background-color: rgba(15, 23, 42, 0.85); /* Dark mode glass overlay */
+    }
+
+    /* Ensure all content stays above the background overlay */
+    .mod-layout > div {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* HEADER & STATS - Adjusted opacity to blend with background */
+    .mod-header {
+        background: linear-gradient(to right, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+        backdrop-filter: blur(10px);
+        padding: 30px 20px 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    [data-theme="dark"] .mod-header, .dark .mod-header {
+        background: linear-gradient(to right, rgba(2, 6, 23, 0.95), rgba(15, 23, 42, 0.95));
+    }
+    
+    .mod-header::after {
+        content: ''; position: absolute; top: 0; right: 0; width: 300px; height: 100%;
+        background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    @media (min-width: 768px) {
+        .mod-header { padding: 40px 40px 60px; border-radius: 0 0 40px 40px; }
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: transform 0.3s;
+    }
+    .stat-card:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.15); }
+
+    .stat-icon {
+        width: 50px; height: 50px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    }
+
+    /* TABS */
+    .mod-tabs {
+        display: flex; gap: 12px; margin-top: -24px; padding: 0 20px;
+        position: relative; z-index: 20; justify-content: center;
+    }
+    @media (min-width: 768px) { .mod-tabs { justify-content: flex-start; padding: 0 50px; margin-top: -30px; } }
+
+    .mod-tab-btn {
+        background: #ffffff; color: #64748b; font-weight: 700; padding: 12px 24px;
+        border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+    }
+    [data-theme="dark"] .mod-tab-btn, .dark .mod-tab-btn {
+        background: #1e293b; color: #94a3b8; border-color: #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .mod-tab-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+    [data-theme="dark"] .mod-tab-btn.active, .dark .mod-tab-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+
+    /* MODERATION CARDS */
+    .mod-grid {
+        padding: 40px 20px; max-width: 1200px; margin: 0 auto;
+        display: grid; grid-template-columns: 1fr; gap: 24px;
+    }
+    @media (min-width: 1024px) {
+        .mod-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .mod-card {
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+        border-radius: 24px; border: 1px solid #e2e8f0;
+        overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        display: flex; flex-direction: column; transition: transform 0.3s;
+    }
+    .mod-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    [data-theme="dark"] .mod-card, .dark .mod-card { background: rgba(30, 41, 59, 0.95); border-color: #334155; }
+
+    .mod-card-header {
+        padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+        display: flex; justify-content: space-between; align-items: center;
+        background: rgba(248, 250, 252, 0.5);
+    }
+    [data-theme="dark"] .mod-card-header, .dark .mod-card-header { background: rgba(15, 23, 42, 0.5); border-color: #334155; }
+
+    .mod-card-body { padding: 20px; flex-grow: 1; }
+    
+    .mod-media-preview {
+        width: 100%; max-height: 250px; object-fit: cover;
+        border-radius: 12px; margin-top: 12px; border: 1px solid #e2e8f0;
+    }
+    [data-theme="dark"] .mod-media-preview { border-color: #334155; }
+
+    /* ACTION BUTTONS */
+    .mod-actions {
+        padding: 16px 20px; border-top: 1px solid #f1f5f9;
+        display: flex; gap: 12px; background: transparent;
+    }
+    [data-theme="dark"] .mod-actions, .dark .mod-actions { border-color: #334155; }
+
+    .action-btn {
+        flex: 1; padding: 12px; border-radius: 12px; font-weight: 700;
+        font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;
+        cursor: pointer; border: none; transition: all 0.2s;
+    }
+    
+    .btn-approve { background: #ecfdf5; color: #10b981; }
+    .btn-approve:hover { background: #10b981; color: white; }
+    [data-theme="dark"] .btn-approve { background: rgba(16, 185, 129, 0.1); }
+    
+    .btn-reject { background: #fef2f2; color: #ef4444; }
+    .btn-reject:hover { background: #ef4444; color: white; }
+    [data-theme="dark"] .btn-reject { background: rgba(239, 68, 68, 0.1); }
+
+    /* REPORT BADGES */
+    .report-reason {
+        background: #fffbeb; color: #d97706; padding: 12px 16px;
+        border-radius: 12px; font-weight: 600; font-size: 0.9rem;
+        border: 1px solid #fde68a; margin-bottom: 16px;
+        display: flex; gap: 8px; align-items: flex-start;
+    }
+    [data-theme="dark"] .report-reason { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mod-layout animate-fade-in">
+
+    <div class="mod-header">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-display font-extrabold flex items-center gap-3">
+                        <i class="ph-fill ph-shield-check text-emerald-400"></i>
+                        Moderation Hub
+                    </h1>
+                    <p class="text-slate-300 font-medium mt-2">Review pending posts and manage user reports.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="stat-card">
+                    <div class="stat-icon bg-amber-500/20 text-amber-400"><i class="ph-fill ph-clock-counter-clockwise"></i></div>
+                    <div>
+                        <p class="text-2xl font-bold">{{ pending_posts.count|default:"0" }}</p>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Posts</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-red-500/20 text-red-400"><i class="ph-fill ph-warning-octagon"></i></div>
+                    <div>
+                        <p class="text-2xl font-bold">{{ reports.count|default:"0" }}</p>
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Reports</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mod-tabs max-w-6xl mx-auto">
+        <button class="mod-tab-btn active" onclick="ModEngine.switchTab('pending', this)">
+            <i class="ph-bold ph-files"></i> Pending Posts
+        </button>
+        <button class="mod-tab-btn" onclick="ModEngine.switchTab('reports', this)">
+            <i class="ph-bold ph-flag"></i> User Reports
+        </button>
+    </div>
+
+    <div id="section-pending" class="mod-grid">
+        
+        {% for post in pending_posts %}
+        <div class="mod-card animate-slide-up" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            
+            <div class="mod-card-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300">
+                        {{ post.author.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-900 dark:text-white text-sm">{{ post.author.first_name|default:post.author.username }}</p>
+                        <p class="text-xs text-slate-500">@{{ post.author.username }} • {{ post.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold uppercase rounded-md">Pending</span>
+            </div>
+
+            <div class="mod-card-body">
+                <p class="text-slate-800 dark:text-slate-200 text-sm font-medium whitespace-pre-wrap">{{ post.content }}</p>
+                
+                {% if post.image %}
+                <img src="{{ post.image.url }}" class="mod-media-preview cursor-pointer" onclick="ModEngine.openLightbox('{{ post.image.url }}')">
+                {% endif %}
+                {% if post.video %}
+                <video src="{{ post.video.url }}" controls class="mod-media-preview bg-black"></video>
+                {% endif %}
+            </div>
+
+            <div class="mod-actions">
+                <form method="POST" action="{% url 'approve_post' post.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-approve w-full">
+                        <i class="ph-bold ph-check"></i> Approve
+                    </button>
+                </form>
+                
+                <form method="POST" action="{% url 'reject_post' post.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-reject w-full">
+                        <i class="ph-bold ph-x"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center text-center py-20 opacity-80 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl border border-white/20 dark:border-slate-700/50 mt-4">
+            <div class="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mb-4 text-emerald-500 shadow-inner">
+                <i class="ph-fill ph-check-circle text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">Queue is clear!</h3>
+            <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">There are no pending posts awaiting approval.</p>
+        </div>
+        {% endfor %}
+        
+    </div>
+
+    <div id="section-reports" class="mod-grid hidden opacity-0 transition-opacity duration-300">
+        
+        {% for report in reports %}
+        <div class="mod-card">
+            
+            <div class="mod-card-header">
+                <div class="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold text-sm">
+                    <i class="ph-fill ph-warning-circle text-lg"></i>
+                    Reported {{ report.report_type|title }}
+                </div>
+                <p class="text-xs font-semibold text-slate-500">By @{{ report.reporter.username }}</p>
+            </div>
+
+            <div class="mod-card-body">
+                <div class="report-reason">
+                    <i class="ph-bold ph-info mt-0.5"></i>
+                    <div>
+                        <p class="text-xs uppercase tracking-wider opacity-70 mb-1">Reason for report</p>
+                        <p>{{ report.reason }}</p>
+                    </div>
+                </div>
+
+                {% if report.screenshot %}
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Evidence Screenshot</p>
+                <img src="{{ report.screenshot.url }}" class="mod-media-preview cursor-pointer border-red-200 dark:border-red-900/30" onclick="ModEngine.openLightbox('{{ report.screenshot.url }}')">
+                {% endif %}
+            </div>
+
+            <div class="mod-actions">
+                <form method="POST" action="{% url 'dismiss_report' report.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 w-full">
+                        Dismiss
+                    </button>
+                </form>
+                
+                <form method="POST" action="{% url 'action_report' report.id %}" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn btn-reject w-full">
+                        <i class="ph-bold ph-trash"></i> Delete Content
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center text-center py-20 opacity-80 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm rounded-3xl border border-white/20 dark:border-slate-700/50 mt-4">
+            <div class="w-24 h-24 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 text-slate-500 shadow-inner">
+                <i class="ph-fill ph-shield-check text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white">No active reports</h3>
+            <p class="text-slate-600 dark:text-slate-400 mt-2 font-medium">The campus feed is clean and safe.</p>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<div id="modLightbox" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/95 backdrop-blur-xl opacity-0 transition-opacity duration-300">
+    <button onclick="ModEngine.closeLightbox()" class="absolute top-6 right-6 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors">
+        <i class="ph ph-x text-2xl"></i>
+    </button>
+    <img id="lightboxImg" src="" class="max-w-[90%] max-h-[90vh] object-contain rounded-xl shadow-2xl transform scale-95 transition-transform duration-300">
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /**
+     * =========================================================
+     * [5] MODERATION ENGINE JS
+     * =========================================================
+     */
+    class ModerationUIEngine {
+        constructor() {
+            this.pendingSec = document.getElementById('section-pending');
+            this.reportsSec = document.getElementById('section-reports');
+            
+            this.lightbox = document.getElementById('modLightbox');
+            this.lightboxImg = document.getElementById('lightboxImg');
+        }
+
+        switchTab(tabName, btnElement) {
+            document.querySelectorAll('.mod-tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            if(tabName === 'pending') {
+                this.reportsSec.classList.add('hidden');
+                this.reportsSec.classList.remove('opacity-100');
+                
+                this.pendingSec.classList.remove('hidden');
+                setTimeout(() => this.pendingSec.classList.add('opacity-100'), 50);
+            } else {
+                this.pendingSec.classList.add('hidden');
+                this.pendingSec.classList.remove('opacity-100');
+                
+                this.reportsSec.classList.remove('hidden');
+                setTimeout(() => this.reportsSec.classList.add('opacity-100'), 50);
+            }
+        }
+
+        openLightbox(imgSrc) {
+            this.lightboxImg.src = imgSrc;
+            this.lightbox.classList.remove('hidden');
+            this.lightbox.classList.add('flex');
+            void this.lightbox.offsetWidth;
+            this.lightbox.classList.replace('opacity-0', 'opacity-100');
+            this.lightboxImg.classList.replace('scale-95', 'scale-100');
+        }
+
+        closeLightbox() {
+            this.lightbox.classList.replace('opacity-100', 'opacity-0');
+            this.lightboxImg.classList.replace('scale-100', 'scale-95');
+            setTimeout(() => {
+                this.lightbox.classList.add('hidden');
+                this.lightbox.classList.remove('flex');
+            }, 300);
+        }
+    }
+
+    const ModEngine = new ModerationUIEngine();
+
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = this.querySelector('button[type="submit"]');
+            if(btn) {
+                const icon = btn.innerHTML;
+                btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Processing...`;
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.7';
+            }
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && !ModEngine.lightbox.classList.contains('hidden')) {
+            ModEngine.closeLightbox();
+        }
+    });
+</script>
+{% endblock %}
